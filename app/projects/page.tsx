@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface Project {
   id: string;
@@ -9,6 +10,7 @@ interface Project {
   tech: string[];
   github?: string;
   demo?: string;
+  internalLink?: string;
   emoji: string;
 }
 
@@ -20,8 +22,16 @@ const DEFAULT_PROJECTS: Project[] = [
     name: 'mychang',
     description: '나만의 이것저것 담는 개인 페이지. Next.js로 만든 첫 프로젝트!',
     tech: ['Next.js', 'TypeScript', 'CSS'],
-    github: 'https://github.com',
+    github: 'https://github.com/doobuhanmo/mychang',
     emoji: '✦',
+  },
+  {
+    id: '2',
+    name: '홍대 맛집 지도',
+    description: '친구들과 홍대에서 만날 때를 위한 추천 맛집 모음. Leaflet 지도 위에 음식점 정보를 핀으로 표시.',
+    tech: ['Next.js', 'Leaflet', 'TypeScript'],
+    internalLink: '/hongdae',
+    emoji: '🍜',
   },
 ];
 
@@ -112,8 +122,13 @@ export default function ProjectsPage() {
                   ))}
                 </div>
               )}
-              {(project.github || project.demo) && (
+              {(project.github || project.demo || project.internalLink) && (
                 <div className="project-card-links">
+                  {project.internalLink && (
+                    <Link href={project.internalLink} className="link-btn" style={{ color: 'var(--accent-3)', borderColor: 'var(--border-active)' }}>
+                      <span>↗</span> 열어보기
+                    </Link>
+                  )}
                   {project.github && (
                     <a href={project.github} target="_blank" rel="noopener noreferrer" className="link-btn">
                       <span>⌥</span> GitHub
