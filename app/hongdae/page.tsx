@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import './hongdae.css';
 import 'leaflet/dist/leaflet.css';
@@ -113,89 +112,67 @@ const RESTAURANTS: Restaurant[] = [
 
 export default function HongdaePage() {
   const [selected, setSelected] = useState<string | null>(null);
-  const selectedRest = RESTAURANTS.find((r) => r.id === selected);
 
   return (
-    <>
-      {/* Back */}
-      <Link href="/projects" className="back-link">
-        ← 프로젝트로 돌아가기
-      </Link>
+    <div className="hongdae-page">
+      {/* Sticky header */}
+      <header className="hongdae-header">
+        <div className="hongdae-header-logo">
+          <span>✦</span> mychang
+        </div>
+        <div>
+          <h1 className="page-title" style={{ fontSize: 20, marginBottom: 2 }}>🍜 홍대 맛집 지도</h1>
+          <p className="page-subtitle">친구들과 홍대에서 모일 때를 위한 추천 맛집 · {RESTAURANTS.length}곳</p>
+        </div>
+      </header>
 
-      <div className="page-header" style={{ marginBottom: 24 }}>
-        <h1 className="page-title">🍜 홍대 맛집 지도</h1>
-        <p className="page-subtitle">
-          친구들과 홍대에서 모일 때를 위한 추천 맛집 모음 · {RESTAURANTS.length}곳
+      <div className="hongdae-content">
+        <div className="hongdae-layout">
+          {/* Map */}
+          <div className="map-wrapper">
+            <HongdaeMap
+              restaurants={RESTAURANTS}
+              selected={selected}
+              onSelect={setSelected}
+            />
+          </div>
+
+          {/* Restaurant List */}
+          <div className="restaurant-panel">
+            {RESTAURANTS.map((r) => (
+              <div
+                key={r.id}
+                id={`rest-${r.id}`}
+                className={`rest-card ${selected === r.id ? 'selected' : ''}`}
+                onClick={() => setSelected(selected === r.id ? null : r.id)}
+              >
+                {selected === r.id && <div className="selected-indicator" />}
+                <div className="rest-card-header">
+                  <div className="rest-emoji">{r.emoji}</div>
+                  <div className="rest-info">
+                    <div className="rest-name">{r.name}</div>
+                    <div className="rest-category">{r.category}</div>
+                  </div>
+                  <div className="rest-rating">★ {r.rating}</div>
+                </div>
+                <div className="rest-desc">{r.desc}</div>
+                <div className="rest-meta">
+                  <span className="rest-badge">🕐 {r.hours}</span>
+                  <span className="rest-badge">💰 {r.price}</span>
+                </div>
+                {selected === r.id && r.tip && (
+                  <div className="rest-tip">💡 {r.tip}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="hongdae-footer-note">
+          지도 핀 또는 카드를 클릭하면 위치와 상세 정보를 볼 수 있어요 🗺️
         </p>
       </div>
-
-      <div className="hongdae-layout">
-        {/* Map */}
-        <div className="map-wrapper">
-          <HongdaeMap
-            restaurants={RESTAURANTS}
-            selected={selected}
-            onSelect={setSelected}
-          />
-        </div>
-
-        {/* Restaurant List */}
-        <div className="restaurant-panel">
-          {RESTAURANTS.map((r) => (
-            <div
-              key={r.id}
-              id={`rest-${r.id}`}
-              className={`rest-card ${selected === r.id ? 'selected' : ''}`}
-              onClick={() => setSelected(selected === r.id ? null : r.id)}
-            >
-              {selected === r.id && <div className="selected-indicator" />}
-              <div className="rest-card-header">
-                <div className="rest-emoji">{r.emoji}</div>
-                <div className="rest-info">
-                  <div className="rest-name">{r.name}</div>
-                  <div className="rest-category">{r.category}</div>
-                </div>
-                <div className="rest-rating">
-                  ★ {r.rating}
-                </div>
-              </div>
-              <div className="rest-desc">{r.desc}</div>
-              <div className="rest-meta">
-                <span className="rest-badge">🕐 {r.hours}</span>
-                <span className="rest-badge">💰 {r.price}</span>
-              </div>
-              {selected === r.id && r.tip && (
-                <div
-                  style={{
-                    marginTop: 12,
-                    padding: '10px 14px',
-                    background: 'rgba(139,92,246,0.08)',
-                    border: '1px solid rgba(139,92,246,0.2)',
-                    borderRadius: 8,
-                    fontSize: 12,
-                    color: 'var(--accent-3)',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  💡 {r.tip}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Footer note */}
-      <p
-        style={{
-          marginTop: 16,
-          fontSize: 12,
-          color: 'var(--text-muted)',
-          textAlign: 'center',
-        }}
-      >
-        지도 핀 또는 카드를 클릭하면 상세 정보를 볼 수 있어요 🗺️
-      </p>
-    </>
+    </div>
   );
 }
+

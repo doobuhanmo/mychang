@@ -125,9 +125,9 @@ export default function ProjectsPage() {
               {(project.github || project.demo || project.internalLink) && (
                 <div className="project-card-links">
                   {project.internalLink && (
-                    <Link href={project.internalLink} className="link-btn" style={{ color: 'var(--accent-3)', borderColor: 'var(--border-active)' }}>
+                    <a href={project.internalLink} target="_blank" rel="noopener noreferrer" className="link-btn" style={{ color: 'var(--accent-3)', borderColor: 'var(--border-active)' }}>
                       <span>↗</span> 열어보기
-                    </Link>
+                    </a>
                   )}
                   {project.github && (
                     <a href={project.github} target="_blank" rel="noopener noreferrer" className="link-btn">

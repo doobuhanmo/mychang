@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -10,10 +9,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "mychang — 나의 공간",
-  description: "프로젝트, 메모, 북마크를 한 곳에 담는 나만의 개인 페이지",
+  title: "mychang",
+  description: "나만의 개인 공간",
 };
 
+// Root layout — no sidebar. Each route group has its own layout.
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,12 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={inter.variable}>
-      <body>
-        <div className="app-shell">
-          <Sidebar />
-          <main className="main-content">{children}</main>
-        </div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,23 +1,82 @@
-/* ─── Leaflet override for dark mode ─── */
-.leaflet-container {
-  background: #1a1a2e;
-  border-radius: var(--radius);
+/* ─── Hongdae Standalone Layout ─── */
+.hongdae-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
-/* ─── Hongdae Page Layout ─── */
+/* Ambient glow for standalone page */
+.hongdae-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Top Header ─── */
+.hongdae-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 32px;
+  background: rgba(12,12,16,.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.hongdae-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-right: 20px;
+  border-right: 1px solid var(--glass-border);
+}
+
+.hongdae-header-logo span {
+  color: var(--accent-soft);
+}
+
+/* ─── Content area ─── */
+.hongdae-content {
+  flex: 1;
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Map + Panel Grid ─── */
 .hongdae-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 24px;
-  height: calc(100vh - 180px);
-  min-height: 500px;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 160px);
 }
 
 .map-wrapper {
-  border-radius: var(--radius);
+  border-radius: var(--r);
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   position: relative;
+  min-height: 400px;
 }
 
 .map-wrapper > div {
@@ -25,151 +84,23 @@
   height: 100%;
 }
 
-/* ─── Sidebar Panel ─── */
-.restaurant-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
+/* ─── Leaflet dark overrides ─── */
+.leaflet-container {
+  background: #111116;
+  border-radius: var(--r);
+  font-family: 'Inter', sans-serif !important;
 }
 
-.restaurant-panel::-webkit-scrollbar { width: 4px; }
-.restaurant-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-/* ─── Restaurant Card ─── */
-.rest-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
-  cursor: pointer;
-  transition: all var(--transition);
-  position: relative;
-}
-
-.rest-card:hover,
-.rest-card.selected {
-  border-color: var(--border-active);
-  background: var(--bg-card-hover);
-  box-shadow: var(--shadow-glow);
-}
-
-.rest-card.selected {
-  transform: none;
-}
-
-.rest-card-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.rest-emoji {
-  font-size: 28px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.rest-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.rest-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 3px;
-}
-
-.rest-category {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent-3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.rest-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-
-.rest-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.rest-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.rest-rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #fbbf24;
-}
-
-.selected-indicator {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent-1);
-  box-shadow: 0 0 8px var(--accent-1);
-}
-
-/* ─── Custom Map Marker ─── */
-.custom-marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.custom-marker.active {
-  background: var(--gradient);
-  border-color: var(--accent-3);
-  box-shadow: 0 0 16px rgba(139, 92, 246, 0.5);
-}
-
-.custom-marker span {
-  transform: rotate(45deg);
-  font-size: 16px;
-}
-
-/* ─── Map Popup ─── */
 .leaflet-popup-content-wrapper {
-  background: var(--bg-secondary) !important;
-  border: 1px solid var(--border-active) !important;
-  border-radius: var(--radius-sm) !important;
-  box-shadow: var(--shadow-glow) !important;
-  color: var(--text-primary) !important;
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--accent-border) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05) !important;
+  color: var(--text-1) !important;
 }
 
 .leaflet-popup-tip {
-  background: var(--bg-secondary) !important;
+  background: var(--bg-elevated) !important;
 }
 
 .leaflet-popup-content {
@@ -177,66 +108,185 @@
   font-family: 'Inter', sans-serif !important;
 }
 
+.leaflet-popup-close-button {
+  color: var(--text-3) !important;
+}
+
 .popup-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  color: var(--text-1);
+  margin-bottom: 3px;
 }
 
 .popup-category {
   font-size: 11px;
-  color: var(--accent-3);
+  color: var(--accent-soft);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
 .leaflet-control-attribution {
-  background: rgba(0,0,0,0.6) !important;
-  color: var(--text-muted) !important;
+  background: rgba(0,0,0,.55) !important;
+  color: var(--text-3) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10px !important;
+  border-radius: 6px 0 0 0 !important;
+  padding: 2px 6px !important;
 }
 
 .leaflet-control-attribution a {
-  color: var(--accent-3) !important;
+  color: var(--accent-soft) !important;
 }
 
-/* ─── Back Link ─── */
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 20px;
-  transition: color var(--transition);
+.leaflet-control-zoom a {
+  background: var(--bg-elevated) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--text-2) !important;
 }
 
-.back-link:hover {
-  color: var(--accent-3);
+.leaflet-control-zoom a:hover {
+  background: var(--bg-overlay) !important;
+  color: var(--text-1) !important;
 }
 
-/* ─── Add button on map ─── */
-.map-controls {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 1000;
+/* ─── Restaurant Panel ─── */
+.restaurant-panel {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.restaurant-panel::-webkit-scrollbar { width: 4px; }
+.restaurant-panel::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.08);
+  border-radius: 99px;
+}
+
+/* ─── Restaurant Card ─── */
+.rest-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  position: relative;
+}
+
+.rest-card:hover {
+  border-color: var(--glass-border-hv);
+  background: var(--glass-bg-hv);
+}
+
+.rest-card.selected {
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+  box-shadow: 0 0 0 1px var(--accent-border), 0 4px 20px rgba(124,111,238,.12);
+}
+
+.rest-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.rest-emoji {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.rest-info { flex: 1; min-width: 0; }
+
+.rest-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rest-category {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent-soft);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.rest-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--amber);
+  flex-shrink: 0;
+}
+
+.rest-desc {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+
+.rest-meta {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.rest-badge {
+  font-size: 11px;
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.selected-indicator {
+  position: absolute;
+  top: 13px; right: 13px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ─── Tip box ─── */
+.rest-tip {
+  margin-top: 10px;
+  padding: 9px 12px;
+  background: rgba(124,111,238,.07);
+  border: 1px solid rgba(124,111,238,.18);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  color: var(--accent-soft);
+  line-height: 1.6;
+}
+
+/* ─── Footer note ─── */
+.hongdae-footer-note {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-3);
 }
 
 /* ─── Mobile ─── */
 @media (max-width: 900px) {
-  .hongdae-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-  .map-wrapper {
-    height: 360px;
-  }
-  .restaurant-panel {
-    max-height: 400px;
-  }
+  .hongdae-header { padding: 12px 16px; gap: 14px; }
+  .hongdae-content { padding: 20px 16px; }
+  .hongdae-layout { grid-template-columns: 1fr; height: auto; }
+  .map-wrapper { height: 320px; }
+  .restaurant-panel { max-height: 420px; }
 }
