@@ -81,6 +81,7 @@ export default function HongdaePage() {
   const [locQuery, setLocQuery] = useState('');
   const [locResults, setLocResults] = useState<any[]>([]);
   const [locSearching, setLocSearching] = useState(false);
+  const [locError, setLocError] = useState('');
 
   // Load from localStorage
   useEffect(() => {
@@ -140,16 +141,30 @@ export default function HongdaePage() {
 
   // Location search via Naver geocoding
   const searchLocation = () => {
-    if (!locQuery.trim() || !window.naver?.maps?.Service) return;
+    if (!locQuery.trim()) return;
+    if (!window.naver?.maps?.Service) {
+      setLocError('지도가 아직 로딩 중이에요. 잠시 후 다시 시도해주세요.');
+      return;
+    }
     setLocSearching(true);
     setLocResults([]);
+    setLocError('');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window.naver.maps.Service as any).geocode(
       { query: locQuery },
       (status: string, response: any) => {
         setLocSearching(false);
-        if (status !== window.naver.maps.Service.Status.OK) return;
-        setLocResults(response.v2.addresses ?? []);
+        console.log('[Geocode] status:', status, 'response:', response);
+        if (status === 'ERROR' || status !== window.naver.maps.Service.Status.OK) {
+          setLocError('검색에 실패했어요. NCP 콘솔에서 Geocoding API가 활성화되어 있는지 확인해주세요.');
+          return;
+        }
+        const addresses = response?.v2?.addresses ?? [];
+        if (addresses.length === 0) {
+          setLocError('검색 결과가 없어요. 다른 검색어를 입력해보세요.');
+        } else {
+          setLocResults(addresses);
+        }
       }
     );
   };
@@ -352,6 +367,11 @@ export default function HongdaePage() {
                     {locSearching ? '...' : '검색'}
                   </button>
                 </div>
+
+                {/* Error */}
+                {locError && (
+                  <div className="loc-error">⚠️ {locError}</div>
+                )}
 
                 {/* Results */}
                 {locResults.length > 0 && (
