@@ -77,6 +77,10 @@ export default function HongdaePage() {
   const [form, setForm] = useState(EMPTY_FORM());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  // Location search
+  const [locQuery, setLocQuery] = useState('');
+  const [locResults, setLocResults] = useState<any[]>([]);
+  const [locSearching, setLocSearching] = useState(false);
 
   // Load from localStorage
   useEffect(() => {
@@ -93,6 +97,7 @@ export default function HongdaePage() {
   const openAdd = () => {
     setForm(EMPTY_FORM());
     setEditTarget(null);
+    setLocQuery(''); setLocResults([]);
     setModalMode('add');
   };
 
@@ -101,6 +106,7 @@ export default function HongdaePage() {
     e.stopPropagation();
     setForm({ ...r });
     setEditTarget(r);
+    setLocQuery(''); setLocResults([]);
     setModalMode('edit');
   };
 
@@ -132,11 +138,38 @@ export default function HongdaePage() {
   const f = (field: keyof typeof form, value: string | number) =>
     setForm(prev => ({ ...prev, [field]: value }));
 
+  // Location search via Naver geocoding
+  const searchLocation = () => {
+    if (!locQuery.trim() || !window.naver?.maps?.Service) return;
+    setLocSearching(true);
+    setLocResults([]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window.naver.maps.Service as any).geocode(
+      { query: locQuery },
+      (status: string, response: any) => {
+        setLocSearching(false);
+        if (status !== window.naver.maps.Service.Status.OK) return;
+        setLocResults(response.v2.addresses ?? []);
+      }
+    );
+  };
+
+  const pickLocation = (result: any) => {
+    setForm(prev => ({
+      ...prev,
+      lat: parseFloat(result.y),
+      lng: parseFloat(result.x),
+      address: result.roadAddress || result.jibunAddress || prev.address,
+    }));
+    setLocResults([]);
+    setLocQuery('');
+  };
+
   return (
     <div className="hongdae-page">
-      {/* Naver Maps SDK */}
+      {/* Naver Maps SDK — geocoder submodule included */}
       <Script
-        src={`https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jmj922nbwr`}
+        src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jmj922nbwr&submodules=geocoder"
         strategy="afterInteractive"
         onLoad={() => setMapReady(true)}
       />
@@ -300,22 +333,52 @@ export default function HongdaePage() {
                 <input className="input" placeholder="방문 전 알면 좋은 팁" value={form.tip ?? ''} onChange={e => f('tip', e.target.value)} />
               </div>
 
-              {/* Row: lat + lng */}
-              <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                <div className="form-group">
-                  <label className="form-label">위도 (Latitude)</label>
-                  <input className="input" type="number" step="0.0001" placeholder="37.5563"
-                    value={form.lat} onChange={e => f('lat', parseFloat(e.target.value) || 0)} />
+              {/* Location Search */}
+              <div className="form-group">
+                <label className="form-label">📍 위치 검색</label>
+                <div className="loc-search-row">
+                  <input
+                    className="input"
+                    placeholder="장소명 또는 주소 검색 (예: 홍대입구역 2번 출구)"
+                    value={locQuery}
+                    onChange={e => setLocQuery(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && searchLocation()}
+                  />
+                  <button
+                    className="btn btn-ghost"
+                    onClick={searchLocation}
+                    disabled={locSearching || !locQuery.trim()}
+                  >
+                    {locSearching ? '...' : '검색'}
+                  </button>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">경도 (Longitude)</label>
-                  <input className="input" type="number" step="0.0001" placeholder="126.9239"
-                    value={form.lng} onChange={e => f('lng', parseFloat(e.target.value) || 0)} />
-                </div>
+
+                {/* Results */}
+                {locResults.length > 0 && (
+                  <div className="loc-results">
+                    {locResults.map((r: any, i: number) => (
+                      <button key={i} className="loc-result-item" onClick={() => pickLocation(r)}>
+                        <span className="loc-result-road">
+                          {r.roadAddress || r.jibunAddress}
+                        </span>
+                        {r.roadAddress && r.jibunAddress && (
+                          <span className="loc-result-jibun">{r.jibunAddress}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Confirmed location */}
+                {form.lat !== 37.5563 && form.address && (
+                  <div className="loc-confirmed">
+                    ✅ {form.address}
+                    <span style={{ color: 'var(--text-3)', fontSize: 11, marginLeft: 6 }}>
+                      ({form.lat.toFixed(4)}, {form.lng.toFixed(4)})
+                    </span>
+                  </div>
+                )}
               </div>
-              <p className="form-hint">
-                💡 위경도는 <a href="https://map.kakao.com" target="_blank" rel="noopener noreferrer">카카오맵</a>에서 원하는 위치 우클릭 → "이 위치 복사"로 확인하세요
-              </p>
             </div>
 
             <div className="modal-footer">
