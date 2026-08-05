@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import Script from 'next/script';
+import NaverMap from './NaverMap';
 import './hongdae.css';
-import 'leaflet/dist/leaflet.css';
-
-const HongdaeMap = dynamic(() => import('./HongdaeMap'), { ssr: false });
 
 export interface Restaurant {
   id: string;
@@ -78,6 +76,7 @@ export default function HongdaePage() {
   const [editTarget, setEditTarget] = useState<Restaurant | null>(null);
   const [form, setForm] = useState(EMPTY_FORM());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   // Load from localStorage
   useEffect(() => {
@@ -135,6 +134,13 @@ export default function HongdaePage() {
 
   return (
     <div className="hongdae-page">
+      {/* Naver Maps SDK */}
+      <Script
+        src={`https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jmj922nbwr`}
+        strategy="afterInteractive"
+        onLoad={() => setMapReady(true)}
+      />
+
       {/* Sticky header */}
       <header className="hongdae-header">
         <div className="hongdae-header-logo">
@@ -151,11 +157,18 @@ export default function HongdaePage() {
         <div className="hongdae-layout">
           {/* Map */}
           <div className="map-wrapper">
-            <HongdaeMap
-              restaurants={restaurants}
-              selected={selected}
-              onSelect={setSelected}
-            />
+            {mapReady ? (
+              <NaverMap
+                restaurants={restaurants}
+                selected={selected}
+                onSelect={setSelected}
+              />
+            ) : (
+              <div className="map-loading">
+                <div className="map-loading-spinner" />
+                <span>지도 불러오는 중...</span>
+              </div>
+            )}
           </div>
 
           {/* Restaurant Panel */}
