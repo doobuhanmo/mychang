@@ -4,19 +4,6 @@
   background: var(--bg-base);
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 1;
-}
-
-/* Ambient glow for standalone page */
-.hongdae-page::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.03) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* ─── Top Header ─── */
@@ -28,10 +15,11 @@
   align-items: center;
   gap: 24px;
   padding: 14px 32px;
-  background: rgba(12,12,16,.8);
+  background: rgba(255,255,255,.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 1px 0 var(--glass-border), var(--shadow-sm);
 }
 
 .hongdae-header-logo {
@@ -48,7 +36,7 @@
 }
 
 .hongdae-header-logo span {
-  color: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* ─── Content area ─── */
@@ -57,8 +45,6 @@
   padding: 28px 32px 24px;
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 1;
 }
 
 /* ─── Map + Panel Grid ─── */
@@ -67,15 +53,15 @@
   grid-template-columns: 1fr 340px;
   gap: 20px;
   flex: 1;
+  height: calc(100vh - 158px);
   min-height: 0;
-  height: calc(100vh - 160px);
 }
 
 .map-wrapper {
   border-radius: var(--r);
   overflow: hidden;
   border: 1px solid var(--glass-border);
-  position: relative;
+  box-shadow: var(--shadow-md);
   min-height: 400px;
 }
 
@@ -84,23 +70,23 @@
   height: 100%;
 }
 
-/* ─── Leaflet dark overrides ─── */
+/* ─── Leaflet light overrides ─── */
 .leaflet-container {
-  background: #111116;
+  background: #e8eaed;
   border-radius: var(--r);
   font-family: 'Inter', sans-serif !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: var(--bg-elevated) !important;
-  border: 1px solid var(--accent-border) !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--glass-border) !important;
   border-radius: var(--r-sm) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.07) !important;
   color: var(--text-1) !important;
 }
 
 .leaflet-popup-tip {
-  background: var(--bg-elevated) !important;
+  background: var(--bg-surface) !important;
 }
 
 .leaflet-popup-content {
@@ -121,27 +107,28 @@
 
 .popup-category {
   font-size: 11px;
-  color: var(--accent-soft);
+  color: var(--accent);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .05em;
 }
 
 .leaflet-control-attribution {
-  background: rgba(0,0,0,.55) !important;
+  background: rgba(255,255,255,.8) !important;
   color: var(--text-3) !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 10px !important;
   border-radius: 6px 0 0 0 !important;
   padding: 2px 6px !important;
+  backdrop-filter: blur(4px);
 }
 
 .leaflet-control-attribution a {
-  color: var(--accent-soft) !important;
+  color: var(--accent) !important;
 }
 
 .leaflet-control-zoom a {
-  background: var(--bg-elevated) !important;
+  background: var(--bg-surface) !important;
   border-color: var(--glass-border) !important;
   color: var(--text-2) !important;
 }
@@ -162,30 +149,33 @@
 
 .restaurant-panel::-webkit-scrollbar { width: 4px; }
 .restaurant-panel::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,.08);
+  background: rgba(0,0,0,.1);
   border-radius: 99px;
 }
 
 /* ─── Restaurant Card ─── */
 .rest-card {
-  background: var(--glass-bg);
+  background: var(--bg-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--r);
   padding: 16px;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
   transition: all var(--dur) var(--ease);
   position: relative;
 }
 
 .rest-card:hover {
   border-color: var(--glass-border-hv);
-  background: var(--glass-bg-hv);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .rest-card.selected {
   border-color: var(--accent-border);
   background: var(--accent-dim);
-  box-shadow: 0 0 0 1px var(--accent-border), 0 4px 20px rgba(124,111,238,.12);
+  box-shadow: var(--shadow-glow);
+  transform: none;
 }
 
 .rest-card-header {
@@ -195,79 +185,49 @@
   margin-bottom: 9px;
 }
 
-.rest-emoji {
-  font-size: 24px;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
+.rest-emoji { font-size: 24px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
 
 .rest-info { flex: 1; min-width: 0; }
 
 .rest-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-1);
+  font-size: 14px; font-weight: 700; color: var(--text-1);
   margin-bottom: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .rest-category {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--accent-soft);
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase; letter-spacing: .06em;
 }
 
 .rest-rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--amber);
-  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 12px; font-weight: 700;
+  color: var(--amber); flex-shrink: 0;
 }
 
 .rest-desc {
-  font-size: 12.5px;
-  color: var(--text-2);
-  line-height: 1.65;
-  margin-bottom: 10px;
+  font-size: 12.5px; color: var(--text-2); line-height: 1.65; margin-bottom: 10px;
 }
 
-.rest-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.rest-meta { display: flex; flex-wrap: wrap; gap: 8px; }
 
-.rest-badge {
-  font-size: 11px;
-  color: var(--text-3);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
+.rest-badge { font-size: 11px; color: var(--text-3); display: inline-flex; align-items: center; gap: 3px; }
 
 .selected-indicator {
-  position: absolute;
-  top: 13px; right: 13px;
-  width: 7px; height: 7px;
-  border-radius: 50%;
+  position: absolute; top: 13px; right: 13px;
+  width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 6px var(--accent);
+  box-shadow: 0 0 6px rgba(109,94,228,.5);
 }
 
 /* ─── Tip box ─── */
 .rest-tip {
   margin-top: 10px;
   padding: 9px 12px;
-  background: rgba(124,111,238,.07);
-  border: 1px solid rgba(124,111,238,.18);
+  background: rgba(109,94,228,.06);
+  border: 1px solid rgba(109,94,228,.15);
   border-radius: var(--r-sm);
   font-size: 12px;
   color: var(--accent-soft);
@@ -290,3 +250,79 @@
   .map-wrapper { height: 320px; }
   .restaurant-panel { max-height: 420px; }
 }
+
+/* ─── Restaurant Card Action Buttons ─── */
+.rest-actions {
+  position: absolute;
+  top: 12px; right: 12px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.rest-card:hover .rest-actions {
+  opacity: 1;
+}
+
+.rest-action-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xs);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+
+.rest-action-btn:hover {
+  border-color: var(--glass-border-hv);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.rest-action-btn.delete:hover {
+  background: rgba(220,38,38,.06);
+  border-color: rgba(220,38,38,.2);
+}
+
+/* ─── Edit Modal ─── */
+.rest-modal {
+  max-width: 520px !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.rest-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── Form hint ─── */
+.form-hint {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: -4px;
+}
+
+.form-hint a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.form-hint a:hover {
+  text-decoration: underline;
+}
+
+/* Disabled button */
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
