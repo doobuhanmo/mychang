@@ -25,15 +25,15 @@ const STORAGE_KEY = 'mc_hongdae_restaurants';
 const DEFAULT_RESTAURANTS: Restaurant[] = [
   {
     id: '1', name: '연남동 경양식1920', category: '경양식 / 돈까스', emoji: '🍱',
-    desc: '1920년대 감성으로 꾸며진 레트로 분위기의 경양식집. 두툼한 수제 돈까스와 진한 소스가 일품. 줄 서서 먹을 가치 있음.',
+    desc: '1920년대 감성으로 꾸며진 레트로 분위기의 경양식집. 두툼한 수제 돈까스와 진한 소스가 일품.',
     address: '서울 마포구 연남동', hours: '11:30 ~ 21:00 (월 휴무)', price: '₩15,000~20,000',
     rating: 4.6, lat: 37.5606, lng: 126.9244, tip: '점심엔 줄이 길어요. 2시~4시 사이가 조금 덜 붐벼요 👍',
   },
   {
     id: '2', name: '홍대 양꼬치 거리', category: '중식 / 양꼬치', emoji: '🔥',
-    desc: '홍대 양꼬치 골목의 대표 맛집. 연기 폴폴 피어오르는 숯불 양꼬치에 칭따오 맥주 한 잔이면 완벽한 밤!',
+    desc: '홍대 양꼬치 골목의 대표 맛집. 숯불 양꼬치에 칭따오 맥주 한 잔이면 완벽한 밤!',
     address: '서울 마포구 와우산로', hours: '17:00 ~ 02:00', price: '₩18,000~30,000',
-    rating: 4.4, lat: 37.5543, lng: 126.9226, tip: '꼭 양념 소스에 찍어 드세요. 인원이 4명 이상이면 더 재밌어요!',
+    rating: 4.4, lat: 37.5543, lng: 126.9226, tip: '꼭 양념 소스에 찍어 드세요.',
   },
   {
     id: '3', name: '합정 일미락', category: '한식 / 국밥', emoji: '🍲',
@@ -43,25 +43,25 @@ const DEFAULT_RESTAURANTS: Restaurant[] = [
   },
   {
     id: '4', name: '상수 파스타 공방', category: '이탈리안 / 파스타', emoji: '🍝',
-    desc: '소규모 공방 스타일의 아담한 파스타 레스토랑. 매일 직접 뽑는 생면 파스타와 와인 페어링이 훌륭함.',
+    desc: '매일 직접 뽑는 생면 파스타와 와인 페어링이 훌륭한 소규모 레스토랑.',
     address: '서울 마포구 상수동', hours: '12:00 ~ 22:00 (화 휴무)', price: '₩22,000~35,000',
     rating: 4.7, lat: 37.5480, lng: 126.9213, tip: '예약 필수! 2인 창가석 요청하면 분위기 최고예요 🕯️',
   },
   {
-    id: '5', name: '연트럴파크 카페거리 타코', category: '멕시칸 / 타코', emoji: '🌮',
-    desc: '연남동 공원 앞 작은 타코 가게. 수제 살사와 아보카도가 듬뿍 들어간 타코가 맛있음.',
+    id: '5', name: '연트럴파크 타코', category: '멕시칸 / 타코', emoji: '🌮',
+    desc: '연남동 공원 앞 작은 타코 가게. 수제 살사와 아보카도가 듬뿍.',
     address: '서울 마포구 연남동 경의선 숲길 근처', hours: '11:00 ~ 21:00', price: '₩12,000~18,000',
-    rating: 4.5, lat: 37.5618, lng: 126.9260, tip: '날씨 좋은 날 경의선 숲길 산책하며 테이크아웃으로도 딱!',
+    rating: 4.5, lat: 37.5618, lng: 126.9260, tip: '날씨 좋은 날 테이크아웃으로 숲길 산책하기 딱!',
   },
   {
     id: '6', name: '홍대 버거 팩토리', category: '버거 / 미국식', emoji: '🍔',
-    desc: '수제 패티를 직화 그릴에 굽는 정통 아메리칸 버거. 두툼한 패티와 신선한 재료.',
+    desc: '수제 패티를 직화 그릴에 굽는 정통 아메리칸 버거.',
     address: '서울 마포구 홍익로', hours: '11:00 ~ 23:00', price: '₩14,000~20,000',
     rating: 4.2, lat: 37.5558, lng: 126.9256, tip: '더블 패티 강력 추천. 감자튀김은 트러플 소스 추가!',
   },
 ];
 
-const EMOJIS = ['🍱','🔥','🍲','🍝','🌮','🍔','🍜','🍣','🍗','🥗','🍕','🫕','🍛','🥩','🍻'];
+const EMOJIS = ['🍱','🔥','🍲','🍝','🌮','🍔','🍜','🍣','🍗','🥗','🍕','🫕','🍛','🥩','🍻','🍴'];
 
 const EMPTY_FORM = (): Omit<Restaurant, 'id'> => ({
   name: '', category: '', emoji: '🍴', desc: '',
@@ -70,18 +70,19 @@ const EMPTY_FORM = (): Omit<Restaurant, 'id'> => ({
 });
 
 export default function HongdaePage() {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
-  const [editTarget, setEditTarget] = useState<Restaurant | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM());
+  const [restaurants, setRestaurants]     = useState<Restaurant[]>([]);
+  const [selected, setSelected]           = useState<string | null>(null);
+  const [modalMode, setModalMode]         = useState<'add' | 'edit' | null>(null);
+  const [editTarget, setEditTarget]       = useState<Restaurant | null>(null);
+  const [form, setForm]                   = useState(EMPTY_FORM());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [mapReady, setMapReady] = useState(false);
-  // Location search
-  const [locQuery, setLocQuery] = useState('');
-  const [locResults, setLocResults] = useState<any[]>([]);
+  const [mapReady, setMapReady]           = useState(false);
+
+  // Location search state
+  const [locQuery, setLocQuery]       = useState('');
+  const [locResults, setLocResults]   = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [locSearching, setLocSearching] = useState(false);
-  const [locError, setLocError] = useState('');
+  const [locError, setLocError]       = useState('');
 
   // Load from localStorage
   useEffect(() => {
@@ -94,36 +95,33 @@ export default function HongdaePage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
-  // Open ADD modal
   const openAdd = () => {
     setForm(EMPTY_FORM());
     setEditTarget(null);
-    setLocQuery(''); setLocResults([]);
+    setLocQuery(''); setLocResults([]); setLocError('');
     setModalMode('add');
   };
 
-  // Open EDIT modal
   const openEdit = (r: Restaurant, e: React.MouseEvent) => {
     e.stopPropagation();
     setForm({ ...r });
     setEditTarget(r);
-    setLocQuery(''); setLocResults([]);
+    setLocQuery(''); setLocResults([]); setLocError('');
     setModalMode('edit');
   };
 
-  // Save (add or edit)
+  const closeModal = () => setModalMode(null);
+
   const handleSave = () => {
     if (!form.name.trim()) return;
     if (modalMode === 'add') {
-      const newR: Restaurant = { ...form, id: Date.now().toString() };
-      persist([...restaurants, newR]);
+      persist([...restaurants, { ...form, id: Date.now().toString() }]);
     } else if (modalMode === 'edit' && editTarget) {
       persist(restaurants.map(r => r.id === editTarget.id ? { ...form, id: r.id } : r));
     }
-    setModalMode(null);
+    closeModal();
   };
 
-  // Delete
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setDeleteConfirm(id);
@@ -139,50 +137,62 @@ export default function HongdaePage() {
   const f = (field: keyof typeof form, value: string | number) =>
     setForm(prev => ({ ...prev, [field]: value }));
 
-  // Location search via Naver geocoding
-  const searchLocation = () => {
+  // Location search — Nominatim (OSM), API 키 불필요
+  const searchLocation = async () => {
     if (!locQuery.trim()) return;
-    if (!window.naver?.maps?.Service) {
-      setLocError('지도가 아직 로딩 중이에요. 잠시 후 다시 시도해주세요.');
-      return;
-    }
     setLocSearching(true);
     setLocResults([]);
     setLocError('');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window.naver.maps.Service as any).geocode(
-      { query: locQuery },
-      (status: string, response: any) => {
-        setLocSearching(false);
-        console.log('[Geocode] status:', status, 'response:', response);
-        if (status === 'ERROR' || status !== window.naver.maps.Service.Status.OK) {
-          setLocError('검색에 실패했어요. NCP 콘솔에서 Geocoding API가 활성화되어 있는지 확인해주세요.');
-          return;
-        }
-        const addresses = response?.v2?.addresses ?? [];
-        if (addresses.length === 0) {
-          setLocError('검색 결과가 없어요. 다른 검색어를 입력해보세요.');
-        } else {
-          setLocResults(addresses);
-        }
+    try {
+      const params = new URLSearchParams({
+        q: locQuery,
+        format: 'json',
+        countrycodes: 'kr',
+        'accept-language': 'ko',
+        limit: '6',
+        addressdetails: '1',
+      });
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?${params}`,
+        { headers: { 'User-Agent': 'mychang-hongdae/1.0' } }
+      );
+      if (!res.ok) throw new Error('network');
+      const data = await res.json();
+      if (data.length === 0) {
+        setLocError('검색 결과가 없어요. 다른 검색어를 입력해보세요.');
+      } else {
+        setLocResults(data);
       }
-    );
+    } catch {
+      setLocError('검색에 실패했어요. 인터넷 연결을 확인해주세요.');
+    } finally {
+      setLocSearching(false);
+    }
   };
 
-  const pickLocation = (result: any) => {
+  const pickLocation = (result: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const addr = result.address ?? {};
+    const short = [
+      addr.city || addr.county || addr.state,
+      addr.suburb || addr.neighbourhood,
+      addr.road,
+      addr.house_number,
+    ].filter(Boolean).join(' ') || result.display_name.split(',').slice(0, 3).join(', ');
+
     setForm(prev => ({
       ...prev,
-      lat: parseFloat(result.y),
-      lng: parseFloat(result.x),
-      address: result.roadAddress || result.jibunAddress || prev.address,
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      address: short,
     }));
     setLocResults([]);
     setLocQuery('');
+    setLocError('');
   };
 
   return (
     <div className="hongdae-page">
-      {/* Naver Maps SDK — geocoder submodule included */}
+      {/* Naver Maps SDK (geocoder submodule included) */}
       <Script
         src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jmj922nbwr&submodules=geocoder"
         strategy="afterInteractive"
@@ -236,21 +246,10 @@ export default function HongdaePage() {
                   onClick={() => setSelected(selected === r.id ? null : r.id)}
                 >
                   {selected === r.id && <div className="selected-indicator" />}
-
-                  {/* Action buttons */}
                   <div className="rest-actions">
-                    <button
-                      className="rest-action-btn edit"
-                      onClick={(e) => openEdit(r, e)}
-                      title="편집"
-                    >✏️</button>
-                    <button
-                      className="rest-action-btn delete"
-                      onClick={(e) => handleDelete(r.id, e)}
-                      title="삭제"
-                    >🗑️</button>
+                    <button className="rest-action-btn edit" onClick={(e) => openEdit(r, e)} title="편집">✏️</button>
+                    <button className="rest-action-btn delete" onClick={(e) => handleDelete(r.id, e)} title="삭제">🗑️</button>
                   </div>
-
                   <div className="rest-card-header">
                     <div className="rest-emoji">{r.emoji}</div>
                     <div className="rest-info">
@@ -280,17 +279,17 @@ export default function HongdaePage() {
 
       {/* ── ADD / EDIT MODAL ── */}
       {modalMode && (
-        <div className="modal-backdrop" onClick={() => setModalMode(null)}>
+        <div className="modal-backdrop" onClick={closeModal}>
           <div className="modal rest-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">
                 {modalMode === 'add' ? '🍴 새 맛집 추가' : '✏️ 맛집 편집'}
               </h2>
-              <button className="modal-close" onClick={() => setModalMode(null)}>✕</button>
+              <button className="modal-close" onClick={closeModal}>✕</button>
             </div>
 
             <div className="rest-form">
-              {/* Row 1: emoji + name */}
+              {/* emoji + name */}
               <div className="form-row" style={{ gridTemplateColumns: '72px 1fr' }}>
                 <div className="form-group">
                   <label className="form-label">이모지</label>
@@ -300,15 +299,17 @@ export default function HongdaePage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">이름 *</label>
-                  <input className="input" placeholder="음식점 이름" value={form.name} onChange={e => f('name', e.target.value)} />
+                  <input className="input" placeholder="음식점 이름" value={form.name}
+                    onChange={e => f('name', e.target.value)} />
                 </div>
               </div>
 
-              {/* Row 2: category + rating */}
+              {/* category + rating */}
               <div className="form-row" style={{ gridTemplateColumns: '1fr 100px' }}>
                 <div className="form-group">
                   <label className="form-label">카테고리</label>
-                  <input className="input" placeholder="한식 / 국밥" value={form.category} onChange={e => f('category', e.target.value)} />
+                  <input className="input" placeholder="한식 / 국밥" value={form.category}
+                    onChange={e => f('category', e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">별점</label>
@@ -317,44 +318,41 @@ export default function HongdaePage() {
                 </div>
               </div>
 
-              {/* Desc */}
+              {/* desc */}
               <div className="form-group">
                 <label className="form-label">설명</label>
                 <textarea className="textarea" placeholder="음식점 설명을 써주세요" value={form.desc}
                   onChange={e => f('desc', e.target.value)} style={{ minHeight: 80 }} />
               </div>
 
-              {/* Row: hours + price */}
+              {/* hours + price */}
               <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
                 <div className="form-group">
                   <label className="form-label">영업시간</label>
-                  <input className="input" placeholder="11:00 ~ 22:00" value={form.hours} onChange={e => f('hours', e.target.value)} />
+                  <input className="input" placeholder="11:00 ~ 22:00" value={form.hours}
+                    onChange={e => f('hours', e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">가격대</label>
-                  <input className="input" placeholder="₩10,000~15,000" value={form.price} onChange={e => f('price', e.target.value)} />
+                  <input className="input" placeholder="₩10,000~15,000" value={form.price}
+                    onChange={e => f('price', e.target.value)} />
                 </div>
               </div>
 
-              {/* Address */}
-              <div className="form-group">
-                <label className="form-label">주소</label>
-                <input className="input" placeholder="서울 마포구 ..." value={form.address} onChange={e => f('address', e.target.value)} />
-              </div>
-
-              {/* Tip */}
+              {/* tip */}
               <div className="form-group">
                 <label className="form-label">꿀팁 (선택)</label>
-                <input className="input" placeholder="방문 전 알면 좋은 팁" value={form.tip ?? ''} onChange={e => f('tip', e.target.value)} />
+                <input className="input" placeholder="방문 전 알면 좋은 팁" value={form.tip ?? ''}
+                  onChange={e => f('tip', e.target.value)} />
               </div>
 
-              {/* Location Search */}
+              {/* Location search */}
               <div className="form-group">
                 <label className="form-label">📍 위치 검색</label>
                 <div className="loc-search-row">
                   <input
                     className="input"
-                    placeholder="장소명 또는 주소 검색 (예: 홍대입구역 2번 출구)"
+                    placeholder="장소명 또는 주소 검색 (예: 홍대입구역)"
                     value={locQuery}
                     onChange={e => setLocQuery(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && searchLocation()}
@@ -368,29 +366,24 @@ export default function HongdaePage() {
                   </button>
                 </div>
 
-                {/* Error */}
-                {locError && (
-                  <div className="loc-error">⚠️ {locError}</div>
-                )}
+                {locError && <div className="loc-error">⚠️ {locError}</div>}
 
-                {/* Results */}
                 {locResults.length > 0 && (
                   <div className="loc-results">
-                    {locResults.map((r: any, i: number) => (
+                    {locResults.map((r: any, i: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                       <button key={i} className="loc-result-item" onClick={() => pickLocation(r)}>
                         <span className="loc-result-road">
-                          {r.roadAddress || r.jibunAddress}
+                          {r.display_name.split(',').slice(0, 3).join(', ')}
                         </span>
-                        {r.roadAddress && r.jibunAddress && (
-                          <span className="loc-result-jibun">{r.jibunAddress}</span>
-                        )}
+                        <span className="loc-result-jibun">
+                          {r.type} · {r.display_name.split(',').pop()?.trim()}
+                        </span>
                       </button>
                     ))}
                   </div>
                 )}
 
-                {/* Confirmed location */}
-                {form.lat !== 37.5563 && form.address && (
+                {form.address && form.lat !== 37.5563 && (
                   <div className="loc-confirmed">
                     ✅ {form.address}
                     <span style={{ color: 'var(--text-3)', fontSize: 11, marginLeft: 6 }}>
@@ -402,7 +395,7 @@ export default function HongdaePage() {
             </div>
 
             <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => setModalMode(null)}>취소</button>
+              <button className="btn btn-ghost" onClick={closeModal}>취소</button>
               <button className="btn btn-primary" onClick={handleSave} disabled={!form.name.trim()}>
                 {modalMode === 'add' ? '추가하기' : '저장하기'}
               </button>
