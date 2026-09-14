@@ -1,3 +1,5 @@
+# 대화 — 거절 & 체념
+
 I'm good.
 A: Would you like more wine?
 B: Oh, I'm good.

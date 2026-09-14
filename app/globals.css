@@ -924,6 +924,46 @@ body {
 
 .study-script-list { display: flex; flex-direction: column; padding: 8px; gap: 2px; }
 
+/* 스크립트 제목 헤더 */
+.study-script-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  margin: 0 0 4px;
+  border-bottom: 2px solid var(--accent-border);
+  background: linear-gradient(to bottom, var(--accent-dim), transparent);
+  border-radius: var(--r) var(--r) 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+.study-script-title-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.study-script-title-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.2px;
+}
+.study-script-title-count {
+  font-size: 11px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+
 /* SRT cue */
 .study-cue-item {
   display: flex; align-items: baseline; gap: 10px;

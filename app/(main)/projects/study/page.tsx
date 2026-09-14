@@ -48,11 +48,20 @@ function parseSRT(raw: string): SRTCue[] {
 interface DialogueLine { speaker: 'A' | 'B' | null; text: string; }
 interface TXTBlock { kind: 'txt'; expression: string; startTime?: number; lines: DialogueLine[]; }
 
-function parseTXT(raw: string): TXTBlock[] {
+function parseTXT(raw: string): { title: string; blocks: TXTBlock[] } {
   const results: TXTBlock[] = [];
-  for (const block of raw.trim().split(/\n\s*\n/)) {
+  let title = '';
+  const allBlocks = raw.trim().split(/\n\s*\n/);
+  for (const block of allBlocks) {
     const rows = block.trim().split('\n').filter(Boolean);
     if (rows.length === 0) continue;
+    // # 제목 라인 처리
+    if (rows[0].startsWith('#')) {
+      title = rows[0].replace(/^#+\s*/, '').trim();
+      // 같은 블록에 내용이 더 있으면 계속
+      if (rows.length === 1) continue;
+      rows.shift();
+    }
     let expression = rows[0];
     let startTime: number | undefined;
     const tsMatch = rows[0].match(/^\[(\d+):(\d{2})\]\s*(.*)/);
@@ -64,10 +73,14 @@ function parseTXT(raw: string): TXTBlock[] {
     });
     results.push({ kind: 'txt', expression, startTime, lines });
   }
-  return results;
+  return { title, blocks: results };
 }
 
-type Script = { mode: 'srt'; cues: SRTCue[] } | { mode: 'txt'; blocks: TXTBlock[] } | { mode: 'none' };
+type Script =
+  | { mode: 'srt'; cues: SRTCue[] }
+  | { mode: 'txt'; title: string; blocks: TXTBlock[] }
+  | { mode: 'none' };
+
 
 /* ──────────────────────────────────────────
    메인 컴포넌트
@@ -139,7 +152,7 @@ export default function StudyPage() {
       .catch(() =>
         fetch(track.txt)
           .then((r) => { if (!r.ok) throw new Error(); return r.text(); })
-          .then((raw) => setScript({ mode: 'txt', blocks: parseTXT(raw) }))
+          .then((raw) => { const { title, blocks } = parseTXT(raw); setScript({ mode: 'txt', title, blocks }); })
           .catch(() => setScript({ mode: 'none' }))
       );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -291,6 +304,13 @@ export default function StudyPage() {
     const totalBlocks = script.blocks.length;
     return (
       <div className="study-script-list">
+        {script.title && (
+          <div className="study-script-title">
+            <span className="study-script-title-num">{track.id}</span>
+            <span className="study-script-title-text">{script.title}</span>
+            <span className="study-script-title-count">{totalBlocks}개 표현</span>
+          </div>
+        )}
         {script.blocks.map((block, bi) => (
           <div key={bi} data-block={bi} className={`study-txt-block ${bi === activeBlock ? 'active' : ''}`}>
             <button className="study-expression"

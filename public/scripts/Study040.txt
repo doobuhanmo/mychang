@@ -1,3 +1,5 @@
+# 난관 — 문제 진단 & 이유
+
 It's urgent.
 A: It's urgent. Hurry up and open the door.
 B: Wait. I'm not done yet.
