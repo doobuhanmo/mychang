@@ -53,6 +53,8 @@ const TRACK_TITLES: string[] = [
   '난관 — 문제 해결 & 도전',   // 041
   '부탁 & 허락',               // 042
   '조언 — 조심 & 침착',        // 043
+  '조언 — 충고 & 대비',        // 044
+  '조언 — 기회 & 실행',        // 045
 ];
 
 const tracks = Array.from({ length: TOTAL }, (_, i) => {
@@ -448,8 +450,8 @@ export default function StudyPage() {
           <div className="spb-track">
             <div className="spb-disc">{isPlaying ? '🔊' : '🎧'}</div>
             <div className="spb-track-info">
-              <div className="spb-track-name">{track.label}</div>
-              <div className="spb-track-sub">{currentIdx + 1} / {TOTAL}</div>
+              <div className="spb-track-name">{track.title || track.label}</div>
+              <div className="spb-track-sub">{track.label} &middot; {currentIdx + 1} / {TOTAL}</div>
             </div>
           </div>
 
