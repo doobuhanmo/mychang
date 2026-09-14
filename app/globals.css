@@ -786,16 +786,17 @@ body {
 .study-body {
   display: flex;
   gap: 0;
-  height: calc(100vh - 200px); /* 헤더 + 플레이어바 공간 제외 */
-  min-height: 400px;
-  padding-bottom: 88px; /* 하단 플레이어 바 높이만큼 여백 */
+  align-items: flex-start;
+  padding-bottom: 100px; /* 하단 플레이어 바 겹침 방지 */
 }
 
 /* ─── 트랙 목록 패널 ─── */
 .study-list-panel {
   display: flex;
   flex-shrink: 0;
-  position: relative;
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 120px);
   transition: width var(--dur) var(--ease);
   overflow: hidden;
 }
@@ -816,6 +817,7 @@ body {
 
 .study-list-panel.closed .study-list-inner { opacity: 0; pointer-events: none; }
 .study-list-panel.open  .study-list-inner { opacity: 1; }
+
 
 /* 트랙 아이템 */
 /* 트랙 행 (play버튼 + check버튼) */
@@ -896,7 +898,7 @@ body {
 /* ─── 스크립트 패널 ─── */
 .study-script-panel {
   flex: 1;
-  overflow-y: auto;
+  min-height: 60vh;
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--r);
