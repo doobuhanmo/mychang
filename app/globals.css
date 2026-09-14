@@ -787,37 +787,58 @@ body {
   display: flex;
   gap: 0;
   align-items: flex-start;
-  padding-bottom: 100px; /* 하단 플레이어 바 겹침 방지 */
+  position: relative; /* 플로팅 패널 기준 */
+  padding-bottom: 100px;
 }
 
-/* ─── 트랙 목록 패널 ─── */
+/* ─── 트랙 목록 패널 (플로팅 오버레이) ─── */
 .study-list-panel {
-  display: flex;
-  flex-shrink: 0;
-  position: sticky;
+  position: absolute;
   top: 0;
+  left: 0;
+  z-index: 30;
+  height: 100%;
   max-height: calc(100vh - 120px);
-  transition: width var(--dur) var(--ease);
-  overflow: hidden;
+  display: flex;
+  pointer-events: none;
 }
 
-.study-list-panel.open  { width: 210px; }
-.study-list-panel.closed { width: 0; }
+.study-list-panel.open  { pointer-events: auto; }
+.study-list-panel.closed { pointer-events: none; }
 
 .study-list-inner {
-  flex: 1;
   overflow-y: auto;
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--r);
-  box-shadow: var(--shadow-sm);
-  width: 210px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.10);
+  width: 220px;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 120px);
+  transform: translateX(-100%);
+  opacity: 0;
+  transition: transform 0.22s var(--ease), opacity 0.18s var(--ease);
 }
 
-.study-list-panel.closed .study-list-inner { opacity: 0; pointer-events: none; }
-.study-list-panel.open  .study-list-inner { opacity: 1; }
+.study-list-panel.open  .study-list-inner {
+  transform: translateX(0);
+  opacity: 1;
+}
+.study-list-panel.closed .study-list-inner {
+  transform: translateX(-100%);
+  opacity: 0;
+}
 
+/* 플로팅 백드롭 */
+.study-list-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 29;
+  background: transparent;
+  cursor: default;
+}
 
 /* 트랙 아이템 */
 /* 트랙 행 (play버튼 + check버튼) */
@@ -922,13 +943,10 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--r);
-  margin-left: 12px;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  transition: margin-left var(--dur) var(--ease);
 }
-.study-list-panel.closed + .study-script-panel { margin-left: 0; }
 
 .study-script-empty {
   display: flex; flex-direction: column;

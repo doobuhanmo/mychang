@@ -395,10 +395,15 @@ export default function StudyPage() {
         <p className="page-subtitle">길벗 이지톡 — 음원 파일 {TOTAL}개</p>
       </div>
 
-      {/* ── 본문: 트랙목록(접기 가능) + 스크립트 ── */}
+      {/* ── 본문: 트랙목록(플로팅) + 스크립트 ── */}
       <div className="study-body">
 
-        {/* 트랙 목록 패널 */}
+        {/* 플로팅 백드롭 (열렸을 때 바깥 클릭 → 닫기) */}
+        {listOpen && (
+          <div className="study-list-backdrop" onClick={() => setListOpen(false)} />
+        )}
+
+        {/* 트랙 목록 패널 (플로팅) */}
         <div className={`study-list-panel ${listOpen ? 'open' : 'closed'}`}>
           <div className="study-list-inner" ref={listRef}>
             {tracks.map((t, i) => {
