@@ -7,16 +7,67 @@ import { useEffect, useRef, useState } from 'react';
 ────────────────────────────────────────── */
 const TOTAL = 100;
 const BASE_URL = 'https://marketing.gilbut.co.kr/qr/eztok/book/301083';
+
+/* 트랙 제목 (없는 번호는 빈 문자열) */
+const TRACK_TITLES: string[] = [
+  '기쁨 & 감동 & 슬픔',       // 001
+  '우울 & 침체',               // 002
+  '민망 & 당황 & 허탈',        // 003
+  '공포 & 긴장 & 안도',        // 004
+  '놀라움 & 충격',             // 005
+  '지루함 & 짜증',             // 006
+  '분노 & 화',                 // 007
+  '불만 & 꾸중',               // 008
+  '잔소리 & 참견',             // 009
+  '비난 & 충고',               // 010
+  '무례함 & 변명',             // 011
+  '말버릇 & 말조심',           // 012
+  '조롱 & 복수',               // 013
+  '말대꾸 & 항변',             // 014
+  '해명 & 사과',               // 015
+  '실수 & 후회',               // 016
+  '긍정적 성격',               // 017
+  '부정적 성격',               // 018
+  '약속 & 만남',               // 019
+  '방문 & 작별',               // 020
+  '오랜만 & 안부',             // 021
+  '호감 & 연애 감정',          // 022
+  '데이트 & 연인 관계',        // 023
+  '연애 갈등 & 이별',          // 024
+  '술자리',                    // 025
+  '음주 & 흡연',               // 026
+  '대화 — 진솔',               // 027
+  '대화 — 신뢰',               // 028
+  '대화 — 듣기 & 설명',        // 029
+  '대화 — 이해',               // 030
+  '대화 — 직감 & 예상',        // 031
+  '대화 — 동의 & 동감',        // 032
+  '대화 — 동참',               // 033
+  '대화 — 거절 & 체념',        // 034
+  '대화 — 생각 & 의견',        // 035
+  '대화 — 기억',               // 036
+  '대화 — 의논 & 요점 & 협상', // 037
+  '대화 — 선택 & 결심',        // 038
+  '난관 — 걱정 & 문제 발생',   // 039
+  '난관 — 문제 진단 & 이유',   // 040
+  '난관 — 문제 해결 & 도전',   // 041
+  '부탁 & 허락',               // 042
+  '조언 — 조심 & 침착',        // 043
+];
+
 const tracks = Array.from({ length: TOTAL }, (_, i) => {
   const n = String(i + 1).padStart(3, '0');
+  const title = TRACK_TITLES[i] ?? '';
   return {
     id: i + 1,
     label: `Study ${n}`,
+    title,
     src: `${BASE_URL}/Study${n}.mp3`,
     srt: `/scripts/Study${n}.srt`,
     txt: `/scripts/Study${n}.txt`,
   };
 });
+
 
 const SPEEDS = [0.8, 1, 1.2, 1.5, 1.8, 2];
 
@@ -356,8 +407,11 @@ export default function StudyPage() {
                     className="study-track-play"
                     onClick={() => { shouldPlayRef.current = true; setCurrentIdx(i); setIsPlaying(true); }}
                   >
-                    <span className="study-track-num">{t.id}</span>
-                    <span className="study-track-label">{t.label}</span>
+                    <span className="study-track-num">{String(t.id).padStart(3, '0')}</span>
+                    <span className="study-track-label">
+                      {t.title || t.label}
+                      {t.title && <span className="study-track-sublabel">{t.label}</span>}
+                    </span>
                     {i === currentIdx && isPlaying && <span className="study-track-playing">▶</span>}
                   </button>
                   <button
