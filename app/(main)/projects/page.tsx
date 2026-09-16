@@ -33,6 +33,14 @@ const DEFAULT_PROJECTS: Project[] = [
     internalLink: '/hongdae',
     emoji: '🍜',
   },
+  {
+    id: '3',
+    name: '영어 공부',
+    description: '길벗 이지톡 교재 음원 100개를 스크립트와 함께 공부하는 오디오 플레이어. 선택 반복재생, 자막 하이라이트.',
+    tech: ['Next.js', 'TypeScript', 'Web Audio'],
+    internalLink: '/projects/study',
+    emoji: '🎧',
+  },
 ];
 
 export default function ProjectsPage() {
@@ -48,8 +56,16 @@ export default function ProjectsPage() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('mc_projects');
-    setProjects(saved ? JSON.parse(saved) : DEFAULT_PROJECTS);
+    const saved: Project[] = (() => {
+      try { return JSON.parse(localStorage.getItem('mc_projects') || '[]'); } catch { return []; }
+    })();
+    // 기본 프로젝트는 항상 포함 (id 기준 중복 제거)
+    const savedIds = new Set(saved.map((p) => p.id));
+    const merged = [
+      ...DEFAULT_PROJECTS.filter((p) => !savedIds.has(p.id)),
+      ...saved,
+    ];
+    setProjects(merged);
   }, []);
 
   const save = (updated: Project[]) => {
