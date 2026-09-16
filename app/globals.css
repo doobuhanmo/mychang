@@ -993,13 +993,10 @@ body {
 /* ─── 스크립트 패널 ─── */
 .study-script-panel {
   flex: 1;
-  min-height: 60vh;
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--r);
   box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
 }
 
 .study-script-empty {
@@ -1015,6 +1012,7 @@ body {
 }
 
 .study-script-list { display: flex; flex-direction: column; padding: 8px; gap: 2px; }
+
 
 /* 스크립트 제목 헤더 */
 .study-script-title {
