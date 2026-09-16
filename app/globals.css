@@ -1254,12 +1254,19 @@ body {
   .spb-vol-range { width: 60px; }
 }
 @media (max-width: 640px) {
-  .spb-track { display: none; }
+  /* 디스크 아이콘만 숨김 — 제목 텍스트는 유지 */
+  .spb-disc { display: none; }
+  .spb-track { min-width: 80px; }
+  .spb-track-name { font-size: 11.5px; }
   .spb-vol-range { width: 50px; }
 }
 @media (max-width: 480px) {
+  /* 부제목(Study 001 · 1/100) 숨김, 볼륨 슬라이더 숨김 */
+  .spb-track-sub { display: none; }
   .spb-volume { display: none; }
-  .spb-row-main { gap: 8px; }
+  .spb-row-main { gap: 6px; }
+  .spb-track { min-width: 60px; }
+  .spb-track-name { font-size: 11px; }
 }
 
 
