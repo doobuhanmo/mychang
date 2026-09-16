@@ -12,6 +12,7 @@ interface Project {
   demo?: string;
   internalLink?: string;
   emoji: string;
+  permanent?: boolean; // 삭제 불가 기본 프로젝트
 }
 
 const EMOJIS = ['🚀', '⚡', '🎨', '🛠️', '🤖', '🌐', '📱', '🎯', '🔥', '💡'];
@@ -24,6 +25,7 @@ const DEFAULT_PROJECTS: Project[] = [
     tech: ['Next.js', 'TypeScript', 'CSS'],
     github: 'https://github.com/doobuhanmo/mychang',
     emoji: '✦',
+    permanent: true,
   },
   {
     id: '2',
@@ -32,6 +34,7 @@ const DEFAULT_PROJECTS: Project[] = [
     tech: ['Next.js', 'Leaflet', 'TypeScript'],
     internalLink: '/hongdae',
     emoji: '🍜',
+    permanent: true,
   },
   {
     id: '3',
@@ -40,6 +43,7 @@ const DEFAULT_PROJECTS: Project[] = [
     tech: ['Next.js', 'TypeScript', 'Web Audio'],
     internalLink: '/projects/study',
     emoji: '🎧',
+    permanent: true,
   },
 ];
 
@@ -117,13 +121,15 @@ export default function ProjectsPage() {
         <div className="card-grid">
           {projects.map((project) => (
             <div key={project.id} className="card project-card">
-              <button
-                className="card-delete-btn"
-                onClick={() => handleDelete(project.id)}
-                title="삭제"
-              >
-                ✕
-              </button>
+              {!project.permanent && (
+                <button
+                  className="card-delete-btn"
+                  onClick={() => handleDelete(project.id)}
+                  title="삭제"
+                >
+                  ✕
+                </button>
+              )}
               <div className="card-title">
                 <span>{project.emoji}</span>
                 {project.name}

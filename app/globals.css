@@ -779,9 +779,10 @@ body {
     font-weight: 500;
   }
 
-  /* 플레이어 바가 탭바 위에 오도록 */
+  /* 플레이어 바가 탭바 위에 오도록 (탭바 높이 ~60px) */
   .study-player-bar {
-    bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+    bottom: 60px;
+    z-index: 210;
   }
 }
 
@@ -1132,7 +1133,7 @@ body {
   flex-direction: column;
   padding: 10px 20px 10px;
   gap: 6px;
-  z-index: 200;
+  z-index: 210;
 }
 
 /* ─── 1행: 컨트롤 ─── */
@@ -1334,16 +1335,7 @@ body {
 }
 
 /* 스크립트 패널 */
-.study-script-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r);
-  height: 520px;
-  overflow-y: auto;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-}
+
 
 .study-script-empty {
   display: flex;
