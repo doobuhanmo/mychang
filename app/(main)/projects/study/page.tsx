@@ -149,7 +149,7 @@ export default function StudyPage() {
   const [script, setScript] = useState<Script>({ mode: 'none' });
   const [activeCue, setActiveCue] = useState(-1);
   const [activeBlock, setActiveBlock] = useState(-1);
-  const [listOpen, setListOpen] = useState(true);
+  const [listOpen, setListOpen] = useState(false);
 
   // localStorage에서 초기값 복원
   const [selectedSet, setSelectedSet] = useState<Set<number>>(() => {
@@ -441,9 +441,8 @@ export default function StudyPage() {
       {/* ── 하단 고정 플레이어 바 ── */}
       <div className="study-player-bar">
 
-        {/* 1행: 컨트롤 */}
-        <div className="spb-row-main">
-
+        {/* 1행: 제목 (모바일에서 별도 행) */}
+        <div className="spb-row-track">
           {/* 목록 토글 */}
           <button
             className={`spb-btn spb-list-toggle ${listOpen ? 'active' : ''}`}
@@ -459,6 +458,10 @@ export default function StudyPage() {
               <div className="spb-track-sub">{track.label} &middot; {currentIdx + 1} / {TOTAL}</div>
             </div>
           </div>
+        </div>
+
+        {/* 2행: 재생 컨트롤 + 배속 + 볼륨 */}
+        <div className="spb-row-main">
 
           {/* 재생 컨트롤 */}
           <div className="spb-controls">
