@@ -458,6 +458,17 @@ export default function StudyPage() {
                 <div className="spb-track-sub">{track.label} &middot; {currentIdx + 1} / {TOTAL}</div>
               </div>
             </div>
+            {/* 모바일 전용 볼륨 (제목행 오른쪽) */}
+            <div className="spb-volume spb-vol-mobile">
+              <span className="spb-vol-icon">
+                {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.7 ? '🔉' : '🔊'}
+              </span>
+              <input
+                type="range" className="spb-vol-range"
+                min={0} max={1} step={0.01}
+                value={volume} onChange={handleVolume}
+              />
+            </div>
           </div>
 
           {/* 재생 컨트롤 + 배속 + 볼륨 */}

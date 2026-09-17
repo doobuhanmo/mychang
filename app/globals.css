@@ -1185,12 +1185,7 @@ body {
   z-index: 210;
 }
 
-/* ─── 1행: 제목 ─── */
-.spb-row-track {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+
 
 /* ─── 2행: 컨트롤 ─── */
 .spb-row-main {
@@ -1357,10 +1352,10 @@ body {
 }
 .spb-range::-webkit-slider-thumb:hover { transform: scale(1.3); }
 
-/* ─── main-area: 데스크탑=가로, 모바일=세로 ─── */
+/* ─── main-area: 데스크탑=가로 1줄, 모바일=세로 2줄 ─── */
 .spb-main-area {
   display: flex;
-  flex-direction: row;   /* 데스크탑: 제목 + 컨트롤 한 줄 */
+  flex-direction: row;
   align-items: center;
   gap: 12px;
 }
@@ -1376,38 +1371,55 @@ body {
   gap: 12px;
   flex: 1;
 }
+/* 데스크탑: 모바일 전용 볼륨 숨김 */
+.spb-vol-mobile { display: none; }
 
-/* ─── 반응형 ─── */
+/* ─── 900px 이하 ─── */
 @media (max-width: 900px) {
-  .study-player-bar { left: 0; padding: 8px 14px 8px; }
+  .study-player-bar { left: 0; padding: 8px 14px; }
   .spb-track { min-width: 100px; }
   .spb-vol-range { width: 60px; }
 }
+/* ─── 640px 이하 ─── */
 @media (max-width: 640px) {
   .spb-disc { display: none; }
   .spb-track { min-width: 80px; }
   .spb-track-name { font-size: 11.5px; }
   .spb-vol-range { width: 50px; }
 }
-@media (max-width: 480px) {
-  .spb-track-sub { display: none; }
-  .spb-volume { display: none; }
-}
-/* 모바일: main-area 세로로 쌓기 */
+
+/* ─── 모바일 768px 이하: 3줄 레이아웃 ─── */
 @media (max-width: 768px) {
+  /* main-area 세로 쌓기 */
   .spb-main-area {
-    flex-direction: column;  /* 모바일: 제목행 + 컨트롤행 */
+    flex-direction: column;
     align-items: stretch;
-    gap: 4px;
-  }
-  .spb-row-track {
+    gap: 6px;
     width: 100%;
   }
-  .spb-row-main {
-    justify-content: center;
+  /* 제목행: [☰ 왼쪽] [제목 가운데] [🔊 오른쪽] */
+  .spb-row-track {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    width: 100%;
   }
-  .spb-track { min-width: 0; flex: 1; }
-  .spb-track-name { font-size: 12px; }
+  .spb-track { min-width: 0; }
+  .spb-track-info { display: flex; flex-direction: column; align-items: center; }
+  .spb-track-name { font-size: 12px; text-align: center; }
+  .spb-track-sub { display: none; }
+  .spb-disc { display: none; }
+  /* 볼륨 스왑 */
+  .spb-right .spb-volume { display: none; }
+  .spb-vol-mobile { display: flex; }
+  .spb-vol-mobile .spb-vol-range { width: 55px; }
+  /* 컨트롤행: 가운데 정렬 */
+  .spb-row-main {
+    flex: none;
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
 }
 
 
