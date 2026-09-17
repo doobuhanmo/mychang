@@ -441,79 +441,74 @@ export default function StudyPage() {
       {/* ── 하단 고정 플레이어 바 ── */}
       <div className="study-player-bar">
 
-        {/* 1행: 제목 (모바일에서 별도 행) */}
-        <div className="spb-row-track">
-          {/* 목록 토글 */}
-          <button
-            className={`spb-btn spb-list-toggle ${listOpen ? 'active' : ''}`}
-            onClick={() => setListOpen((v) => !v)}
-            title={listOpen ? '목록 숨기기' : '목록 보기'}
-          >☰</button>
+        {/* spb-main-area: 데스크탑=가로 1행, 모바일=세로 2행 */}
+        <div className="spb-main-area">
 
-          {/* 트랙 정보 */}
-          <div className="spb-track">
-            <div className="spb-disc">{isPlaying ? '🔊' : '🎧'}</div>
-            <div className="spb-track-info">
-              <div className="spb-track-name">{track.title || track.label}</div>
-              <div className="spb-track-sub">{track.label} &middot; {currentIdx + 1} / {TOTAL}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 2행: 재생 컨트롤 + 배속 + 볼륨 */}
-        <div className="spb-row-main">
-
-          {/* 재생 컨트롤 */}
-          <div className="spb-controls">
-            <button className="spb-btn" onClick={handlePrev} disabled={currentIdx === 0} title="이전">⏮</button>
-            <button className="spb-btn spb-btn-main" onClick={handlePlayPause} title={isPlaying ? '일시정지' : '재생'}>
-              {isPlaying ? '⏸' : '▶'}
-            </button>
-            <button className="spb-btn" onClick={handleNext} disabled={currentIdx === TOTAL - 1} title="다음">⏭</button>
-          </div>
-
-          {/* 배속 + 반복 + 볼륨 */}
-          <div className="spb-right">
-            <div className="spb-speed-group">
-              <button
-                className="spb-speed-step"
-                onClick={() => { const i = SPEEDS.indexOf(speed); if (i > 0) handleSpeed(SPEEDS[i - 1]); }}
-                disabled={SPEEDS.indexOf(speed) === 0}
-                title="배속 낮추기"
-              >−</button>
-              <span className="spb-speed-label">{speed}×</span>
-              <button
-                className="spb-speed-step"
-                onClick={() => { const i = SPEEDS.indexOf(speed); if (i < SPEEDS.length - 1) handleSpeed(SPEEDS[i + 1]); }}
-                disabled={SPEEDS.indexOf(speed) === SPEEDS.length - 1}
-                title="배속 높이기"
-              >+</button>
-            </div>
-
-            {/* 반복 모드 버튼 */}
+          {/* 제목 + 목록 토글 */}
+          <div className="spb-row-track">
             <button
-              className={`spb-btn spb-repeat-btn ${repeatMode !== 'none' ? 'active' : ''}`}
-              onClick={cycleRepeat}
-              title={REPEAT_TITLE[repeatMode]}
-            >
-              <span>{REPEAT_LABEL[repeatMode]}</span>
-              {repeatMode === 'selected' && selectedSet.size > 0 && (
-                <span className="spb-repeat-badge">{selectedSet.size}</span>
-              )}
-            </button>
-
-            <div className="spb-volume">
-              <span className="spb-vol-icon" title={`볼륨 ${Math.round(volume * 100)}%`}>
-                {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.7 ? '🔉' : '🔊'}
-              </span>
-              <input
-                type="range" className="spb-vol-range"
-                min={0} max={1} step={0.01}
-                value={volume} onChange={handleVolume}
-              />
+              className={`spb-btn spb-list-toggle ${listOpen ? 'active' : ''}`}
+              onClick={() => setListOpen((v) => !v)}
+              title={listOpen ? '목록 숨기기' : '목록 보기'}
+            >☰</button>
+            <div className="spb-track">
+              <div className="spb-disc">{isPlaying ? '🔊' : '🎧'}</div>
+              <div className="spb-track-info">
+                <div className="spb-track-name">{track.title || track.label}</div>
+                <div className="spb-track-sub">{track.label} &middot; {currentIdx + 1} / {TOTAL}</div>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* 재생 컨트롤 + 배속 + 볼륨 */}
+          <div className="spb-row-main">
+            <div className="spb-controls">
+              <button className="spb-btn" onClick={handlePrev} disabled={currentIdx === 0} title="이전">⏮</button>
+              <button className="spb-btn spb-btn-main" onClick={handlePlayPause} title={isPlaying ? '일시정지' : '재생'}>
+                {isPlaying ? '⏸' : '▶'}
+              </button>
+              <button className="spb-btn" onClick={handleNext} disabled={currentIdx === TOTAL - 1} title="다음">⏭</button>
+            </div>
+            <div className="spb-right">
+              <div className="spb-speed-group">
+                <button
+                  className="spb-speed-step"
+                  onClick={() => { const i = SPEEDS.indexOf(speed); if (i > 0) handleSpeed(SPEEDS[i - 1]); }}
+                  disabled={SPEEDS.indexOf(speed) === 0}
+                  title="배속 낮추기"
+                >−</button>
+                <span className="spb-speed-label">{speed}×</span>
+                <button
+                  className="spb-speed-step"
+                  onClick={() => { const i = SPEEDS.indexOf(speed); if (i < SPEEDS.length - 1) handleSpeed(SPEEDS[i + 1]); }}
+                  disabled={SPEEDS.indexOf(speed) === SPEEDS.length - 1}
+                  title="배속 높이기"
+                >+</button>
+              </div>
+              <button
+                className={`spb-btn spb-repeat-btn ${repeatMode !== 'none' ? 'active' : ''}`}
+                onClick={cycleRepeat}
+                title={REPEAT_TITLE[repeatMode]}
+              >
+                <span>{REPEAT_LABEL[repeatMode]}</span>
+                {repeatMode === 'selected' && selectedSet.size > 0 && (
+                  <span className="spb-repeat-badge">{selectedSet.size}</span>
+                )}
+              </button>
+              <div className="spb-volume">
+                <span className="spb-vol-icon" title={`볼륨 ${Math.round(volume * 100)}%`}>
+                  {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.7 ? '🔉' : '🔊'}
+                </span>
+                <input
+                  type="range" className="spb-vol-range"
+                  min={0} max={1} step={0.01}
+                  value={volume} onChange={handleVolume}
+                />
+              </div>
+            </div>
+          </div>
+
+        </div>{/* /spb-main-area */}
 
         {/* 2행: 진행바 */}
         <div className="spb-row-progress">
