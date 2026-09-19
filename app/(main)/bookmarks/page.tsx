@@ -13,16 +13,16 @@ interface Bookmark {
 const DEFAULT_BOOKMARKS: Bookmark[] = [
   {
     id: '1',
-    name: 'GitHub',
-    url: 'https://github.com',
-    tags: ['개발', '코드'],
+    name: '허리운동',
+    url: 'https://www.youtube.com/watch?v=5eNOP-iyAww&t=894s',
+    tags: ['운동'],
     createdAt: new Date().toISOString(),
   },
   {
     id: '2',
-    name: 'MDN Web Docs',
-    url: 'https://developer.mozilla.org',
-    tags: ['개발', '문서'],
+    name: '허리스트레칭',
+    url: 'https://www.youtube.com/watch?v=i6ZyhuXzoVc&t=15s',
+    tags: ['운동'],
     createdAt: new Date().toISOString(),
   },
   {
