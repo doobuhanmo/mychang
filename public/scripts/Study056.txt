@@ -1,0 +1,41 @@
+# 음식 맛①
+
+Is the food to your taste?
+A: Is the food to your taste?
+B: Actually, it's a bit pungent.
+
+It's red hot.
+A: Why don't you try this Korean dish?
+B: Sure. Yikes! It's red hot.
+
+It's too bland.
+A: How do you like my cooking?
+B: Umm, could you pass me the salt? It's too bland.
+
+It's too sweet for my taste.
+A: Why don't you have some more?
+B: No, thank you. It's too sweet for my taste.
+
+It's sweet and sour.
+A: How would you describe the flavor?
+B: Hmm. It's sweet and sour.
+
+It has a bittersweet taste.
+A: It has a bittersweet taste.
+B: Try to guess the name of the dish.
+
+It's too oily.
+A: How do you find Japanese ramen?
+B: It's too oily for my taste.
+
+It has a savory taste.
+A: Wow! It has a savory taste. I would like another helping.
+B: But that would be your fourth helping!
+
+It's rich and flavorful.
+A: Is the sauce a bit bland for you?
+B: No, not at all. It's rich and flavorful.
+
+It has a unique taste.
+A: Try this ramen. It has a unique taste.
+B: Really? Oh, it's got ginger in it!

@@ -1,0 +1,41 @@
+# 식당 주문
+
+How long is the wait?
+A: How long is the wait?
+B: It won't take long now, sir.
+
+What's the house specialty?
+A: It's our first visit here. Umm, what's the house specialty?
+B: Everything, sir.
+
+Two servings of pork belly.
+A: Are you ready to order, sir?
+B: Two servings of pork belly to start with, please.
+
+I'll have the same.
+A: I'll have the Gorgonzola pizza.
+B: I'll have the same.
+
+Make it a double.
+A: Would that be all, sir?
+B: Oh, wait. Make it a double.
+
+Hold the onions.
+A: What would you like in your sandwich?
+B: Everything, but hold the onions, please.
+
+I'll just have lemonade.
+A: What would you like to drink? How about a beer?
+B: I'll just have lemonade.
+
+Do you have soda?
+A: Do you have soda?
+B: I'm sorry, sir. We're out of soda at the moment.
+
+Water is self-served.
+A: Excuse me. Can you get me some water?
+B: Umm. Water is self-served.
+
+It's on the house.
+A: What? Umm, I didn't order this cocktail.
+B: It's on the house.
