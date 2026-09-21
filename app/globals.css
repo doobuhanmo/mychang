@@ -464,77 +464,131 @@ body {
 }
 
 /* ─────────────────────────────────────────
-   DASHBOARD
+   HOME PAGE — 앱 아이콘 그리드
 ───────────────────────────────────────── */
-.greeting-card {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #6d5ee4 0%, #4f46e5 100%);
-  border-radius: var(--r);
-  padding: 32px 36px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(109,94,228,.25);
-}
-.greeting-card::before {
-  content: '';
-  position: absolute;
-  top: -60px; right: -40px;
-  width: 220px; height: 220px;
-  background: radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
-  pointer-events: none;
-}
-.greeting-card::after {
-  content: '';
-  position: absolute;
-  bottom: -50px; left: 50px;
-  width: 180px; height: 180px;
-  background: radial-gradient(circle, rgba(255,255,255,.07), transparent 70%);
-  pointer-events: none;
-}
-.greeting-time {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255,255,255,.7);
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  margin-bottom: 10px;
-}
-.greeting-title {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -.5px;
-  margin-bottom: 6px;
-  color: #fff;
-}
-.greeting-sub { font-size: 13.5px; color: rgba(255,255,255,.75); }
+.home-page { padding-top: 8px; }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 28px;
 }
-.stat-card {
+.home-header-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: -.5px;
+}
+.home-edit-btn {
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
-  border-radius: var(--r);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-sm);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
   transition: all var(--dur) var(--ease);
 }
-.stat-card:hover {
+.home-edit-btn:hover,
+.home-edit-btn.active {
+  background: var(--accent-dim);
   border-color: var(--accent-border);
+}
+
+/* 아이콘 그리드 */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
+}
+
+.app-icon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  position: relative;
+}
+
+/* 흔들기 애니메이션 */
+.app-icon-wrap.wiggle {
+  animation: wiggle 0.5s infinite alternate ease-in-out;
+}
+@keyframes wiggle {
+  from { transform: rotate(-2deg); }
+  to   { transform: rotate(2deg); }
+}
+
+.app-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  cursor: pointer;
+}
+.app-icon:hover {
+  transform: scale(1.08);
   box-shadow: var(--shadow-glow);
 }
-.stat-icon { font-size: 20px; margin-bottom: 10px; }
-.stat-value {
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: var(--accent);
-  line-height: 1;
+.app-icon-emoji { font-size: 30px; line-height: 1; }
+.app-icon-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-align: center;
+  max-width: 68px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.stat-label { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+
+/* 제거 버튼 */
+.app-remove-btn {
+  position: absolute;
+  top: -6px; left: -6px;
+  z-index: 10;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-main);
+  background: #ff3b30;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform var(--dur) var(--ease);
+}
+.app-remove-btn:hover { transform: scale(1.15); }
+
+/* 추가 버튼 */
+.app-add-btn {
+  background: var(--bg-surface);
+  border: 2px dashed var(--glass-border);
+  color: var(--text-3);
+}
+.app-add-btn .app-icon-emoji {
+  font-size: 26px;
+  color: var(--accent);
+  font-style: normal;
+}
+.app-add-btn:hover { border-color: var(--accent-border); }
+
+/* 모바일 */
+@media (max-width: 480px) {
+  .app-grid { grid-template-columns: repeat(4, 1fr); gap: 16px 8px; }
+  .app-icon { width: 60px; height: 60px; border-radius: 16px; }
+  .app-icon-emoji { font-size: 26px; }
+}
 
 /* ─────────────────────────────────────────
    PROJECT CARDS
