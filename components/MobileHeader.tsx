@@ -23,6 +23,7 @@ export default function MobileHeader() {
   const router = useRouter();
   const title = PAGE_TITLES[pathname] ?? 'mychang';
   const parent = getParent(pathname);
+  const isHome = pathname === '/';
 
   return (
     <header className="mobile-header">
@@ -40,7 +41,17 @@ export default function MobileHeader() {
         )}
       </div>
       <span className="mobile-header-title">{title}</span>
-      <div className="mobile-header-right" />
+      <div className="mobile-header-right">
+        {!isHome && (
+          <button
+            className="mobile-home-btn"
+            onClick={() => router.push('/')}
+            aria-label="홈"
+          >
+            ⌂
+          </button>
+        )}
+      </div>
     </header>
   );
 }

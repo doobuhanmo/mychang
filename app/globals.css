@@ -834,16 +834,19 @@ body {
     align-items: center;
     justify-content: center;
   }
-  .mobile-back-btn {
+  .mobile-back-btn,
+  .mobile-home-btn {
     width: 40px; height: 40px;
     border: none; background: none;
-    font-size: 28px; line-height: 1;
+    font-size: 22px; line-height: 1;
     color: var(--accent);
     cursor: pointer;
     border-radius: var(--r-xs);
     display: flex; align-items: center; justify-content: center;
   }
-  .mobile-back-btn:hover { background: var(--accent-dim); }
+  .mobile-back-btn { font-size: 28px; }
+  .mobile-back-btn:hover,
+  .mobile-home-btn:hover { background: var(--accent-dim); }
   .mobile-logo {
     font-size: 20px; color: var(--accent);
   }
