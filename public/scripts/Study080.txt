@@ -1,0 +1,41 @@
+# 쇼핑 가격·계산 & 교환·환불
+
+How much in total?
+A: How much in total?
+B: Wow, you've got a lot of beer. That will be $148.
+
+How much do I owe you?
+A: This is it, sir.
+B: Oh, already? How much do I owe you?
+
+What's the regular price?
+A: What's the regular price?
+B: $500. So this means you're getting a 20% discount.
+
+How much is the group-buy price?
+A: How much is the group-buy price?
+B: It depends on the number of people involved.
+
+I'll charge it.
+A: How would you like to pay, sir?
+B: Let's see. Ah, I'll charge it.
+
+I'll pay in cash.
+A: I'll pay in cash. I forgot to bring my credit card.
+B: Ah, in that case, I can give you a 5% discount.
+
+I'm going to pay in installments.
+A: Oh, the statement is here. Let's see. Arrgh!
+B: Don't worry. I'm going to pay in installments.
+
+I'd like a receipt.
+A: Wait, I'd like a receipt.
+B: Oops, let me look for it in the trash can.
+
+I'd like to exchange this.
+A: I'd like to exchange this. It's too small for me.
+B: Sure thing. Did you bring your receipt?
+
+I'd like a refund.
+A: I'd like a refund, but I lost my receipt.
+B: Ooh, it's going to be tricky, then.

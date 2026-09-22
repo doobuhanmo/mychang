@@ -1,0 +1,41 @@
+# 자동차 주유 관리 & 사고
+
+Fill'er up.
+A: Excuse me! Fill'er up, please.
+B: Sir, this is a self-service gas station.
+
+Just 50 dollars worth of gas.
+A: Just 50 dollars worth of gas, please.
+B: Sir, you get 55% off if you spend 100 dollars.
+
+I have a flat tire.
+A: What should I do? I have a flat tire.
+B: Don't panic. Let's pull over slowly.
+
+The engine oil is leaking.
+A: Oh, man. The engine oil is leaking.
+B: Put out your cigarette now!
+
+I had a black box installed.
+A: I had a black box installed.
+B: Great! I feel safe now.
+
+It was a fender-bender.
+A: Was it a serious car accident?
+B: No. It was a fender-bender.
+
+It was a head-on collision.
+A: It was a head-on collision.
+B: Was anyone injured?
+
+It was in my blind spot.
+A: Why didn't you see the other car coming?
+B: It was in my blind spot. I couldn't help it.
+
+I didn't drink and drive.
+A: I didn't drink and drive.
+B: Come on, blow into this.
+
+I was under the speed limit.
+A: I was under the speed limit.
+B: I know. It's your tail light. It's broken.
