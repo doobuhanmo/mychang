@@ -9,6 +9,7 @@ interface Post {
   title: string;
   date: string;
   images: string[];
+  excerpt: string;
 }
 
 export default function TheokerListPage() {
@@ -21,64 +22,52 @@ export default function TheokerListPage() {
       .then(setPosts);
   }, []);
 
-  const filtered = posts.filter(
-    (p) =>
-      p.title.toLowerCase().includes(query.toLowerCase()) ||
-      String(p.num).includes(query)
-  );
+  const q = query.toLowerCase();
+  const filtered = q
+    ? posts.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.excerpt.toLowerCase().includes(q)
+      )
+    : posts;
 
   return (
     <div>
       <div className="section-header">
         <h2 className="section-title">📈 더커 투자철학</h2>
       </div>
-      <p style={{ color: 'var(--text-2)', fontSize: 13, marginBottom: 20 }}>
+      <p style={{ color: 'var(--text-3)', fontSize: 12, marginBottom: 16 }}>
         총 {posts.length}개 포스팅
       </p>
 
-      {/* 검색 */}
       <input
         className="search-input"
-        placeholder="제목 검색..."
+        placeholder="제목 또는 내용 검색..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        style={{ marginBottom: 20 }}
+        style={{ marginBottom: 16 }}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {query && (
+        <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>
+          {filtered.length}개 결과
+        </p>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         {filtered.map((post) => (
           <Link
             key={post.id}
             href={`/projects/theoker/${post.id}`}
             style={{ textDecoration: 'none' }}
           >
-            <div
-              className="card"
-              style={{ cursor: 'pointer', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}
-            >
-              <span
-                style={{
-                  minWidth: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: 'var(--accent-dim)',
-                  color: 'var(--accent)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 800,
-                }}
-              >
-                {post.num || '서'}
-              </span>
-              <div style={{ flex: 1 }}>
-                <div className="card-title" style={{ marginBottom: 2 }}>{post.title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{post.date}</div>
+            <div className="theoker-row">
+              <span className="theoker-num">{post.num || '서'}</span>
+              <div className="theoker-row-info">
+                <span className="theoker-row-title">{post.title}</span>
+                <span className="theoker-row-date">{post.date}</span>
               </div>
-              {post.images.length > 0 && (
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>🖼️</span>
-              )}
+              {post.images.length > 0 && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>🖼</span>}
             </div>
           </Link>
         ))}
