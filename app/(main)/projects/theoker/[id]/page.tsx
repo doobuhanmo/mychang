@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Post {
@@ -11,7 +11,8 @@ interface Post {
   images: string[];
 }
 
-export default function TheokerPostPage({ params }: { params: { id: string } }) {
+export default function TheokerPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [content, setContent] = useState('');
   const [post, setPost] = useState<Post | null>(null);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
@@ -23,17 +24,17 @@ export default function TheokerPostPage({ params }: { params: { id: string } }) 
       .then((r) => r.json())
       .then((posts: Post[]) => {
         setAllPosts(posts);
-        const found = posts.find((p) => p.id === params.id);
+        const found = posts.find((p) => p.id === id);
         setPost(found ?? null);
       });
 
     // Load content
-    fetch(`/theoker/${params.id}/content.html`)
+    fetch(`/theoker/${id}/content.html`)
       .then((r) => r.text())
       .then(setContent);
-  }, [params.id]);
+  }, [id]);
 
-  const idx = allPosts.findIndex((p) => p.id === params.id);
+  const idx = allPosts.findIndex((p) => p.id === id);
   const prev = idx > 0 ? allPosts[idx - 1] : null;
   const next = idx >= 0 && idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
 
