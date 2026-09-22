@@ -591,6 +591,53 @@ body {
 }
 
 /* ─────────────────────────────────────────
+   SEARCH INPUT
+───────────────────────────────────────── */
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--r);
+  border: 1px solid var(--glass-border);
+  background: var(--bg-surface);
+  color: var(--text-1);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--dur) var(--ease);
+  box-sizing: border-box;
+}
+.search-input:focus { border-color: var(--accent-border); }
+.search-input::placeholder { color: var(--text-3); }
+
+/* ─────────────────────────────────────────
+   THEOKER POST CONTENT
+───────────────────────────────────────── */
+.theoker-content {
+  line-height: 2;
+  font-size: 15px;
+  color: var(--text-1);
+}
+.theoker-content p { margin: 0 0 14px; }
+.theoker-content h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; color: var(--text-1); }
+.theoker-content strong { font-weight: 700; color: var(--text-1); }
+.theoker-content blockquote {
+  border-left: 3px solid var(--accent-border);
+  padding-left: 16px;
+  color: var(--text-2);
+  margin: 16px 0;
+  font-style: italic;
+}
+.theoker-content ul, .theoker-content ol { padding-left: 20px; margin-bottom: 14px; }
+.theoker-content li { margin-bottom: 6px; }
+.theoker-content img {
+  max-width: 100%;
+  border-radius: var(--r);
+  margin: 16px 0;
+  display: block;
+}
+.theoker-content a { color: var(--accent); }
+.theoker-content hr { border: none; border-top: 1px solid var(--glass-border); margin: 20px 0; }
+
+/* ─────────────────────────────────────────
    PROJECT CARDS
 ───────────────────────────────────────── */
 .project-card { position: relative; }

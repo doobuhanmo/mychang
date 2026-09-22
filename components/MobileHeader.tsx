@@ -3,12 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation';
 
 const PAGE_TITLES: Record<string, string> = {
-  '/':               'mychang',
-  '/projects':       '🚀 프로젝트',
-  '/projects/study': '🎧 영어 공부',
-  '/hongdae':        '🍜 홍대 맛집 지도',
-  '/notes':          '📝 메모 & 할일',
-  '/bookmarks':      '🔖 북마크',
+  '/':                    'mychang',
+  '/projects':            '🚀 프로젝트',
+  '/projects/study':      '🎧 영어 공부',
+  '/projects/theoker':    '📈 더커 투자철학',
+  '/hongdae':             '🍜 홍대 맛집 지도',
+  '/notes':               '📝 메모 & 할일',
+  '/bookmarks':           '🔖 북마크',
 };
 
 function getParent(pathname: string): string | null {

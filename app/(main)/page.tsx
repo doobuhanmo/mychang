@@ -11,11 +11,12 @@ interface AppIcon {
 }
 
 const ALL_APPS: AppIcon[] = [
-  { id: 'study',     label: '영어공부',  icon: '🎧', href: '/projects/study' },
-  { id: 'bookmarks', label: '북마크',    icon: '🔖', href: '/bookmarks' },
-  { id: 'notes',     label: '메모',      icon: '📝', href: '/notes' },
-  { id: 'projects',  label: '프로젝트',  icon: '🚀', href: '/projects' },
-  { id: 'hongdae',   label: '홍대',      icon: '🏠', href: '/hongdae' },
+  { id: 'study',     label: '영어공부',    icon: '🎧', href: '/projects/study' },
+  { id: 'bookmarks', label: '북마크',      icon: '🔖', href: '/bookmarks' },
+  { id: 'notes',     label: '메모',        icon: '📝', href: '/notes' },
+  { id: 'theoker',   label: '더커',        icon: '📈', href: '/projects/theoker' },
+  { id: 'projects',  label: '프로젝트',    icon: '🚀', href: '/projects' },
+  { id: 'hongdae',   label: '홍대',        icon: '🍜', href: '/hongdae' },
 ];
 
 const DEFAULT_IDS = ['study', 'bookmarks', 'notes'];
