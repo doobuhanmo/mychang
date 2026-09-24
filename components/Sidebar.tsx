@@ -13,6 +13,7 @@ const navItems = [
     sub: [
       { href: '/hongdae', icon: '🍜', label: '홍대 맛집 지도' },
       { href: '/projects/study', icon: '🎧', label: '영어 공부' },
+      { href: '/projects/theoker', icon: '📈', label: '더커 투자철학' },
     ],
   },
   { href: '/notes', icon: '📝', label: '메모 & 할일', sub: [] },
