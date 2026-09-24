@@ -45,6 +45,15 @@ const DEFAULT_PROJECTS: Project[] = [
     emoji: '🎧',
     permanent: true,
   },
+  {
+    id: '4',
+    name: '더커 투자철학',
+    description: '베이릭더커의 투자 철학과 전략을 챕터별로 정리한 글 모음.',
+    tech: ['Next.js', 'TypeScript', '콘텐츠 아카이브'],
+    internalLink: '/projects/theoker',
+    emoji: '📈',
+    permanent: true,
+  },
 ];
 
 export default function ProjectsPage() {
