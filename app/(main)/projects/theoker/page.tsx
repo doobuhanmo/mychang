@@ -21,6 +21,9 @@ function getGroup(post: Post) {
   if (titleWithoutPostNumber.startsWith('차트 분석') || /^\(지지와 저항 \d+\)/.test(titleWithoutPostNumber)) {
     return { key: 'chart-analysis', title: '7. 차트 분석' };
   }
+  if (titleWithoutPostNumber.startsWith('THEKERR NOTE')) {
+    return { key: 'thekerr-note', title: 'THEKERR NOTE' };
+  }
 
   const chapterMatch = title.match(/\s+(\d{1,2})-\d+\s*$/);
   const normalizedTitle = titleWithoutPostNumber
