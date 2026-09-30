@@ -54,6 +54,15 @@ const DEFAULT_PROJECTS: Project[] = [
     emoji: '📈',
     permanent: true,
   },
+  {
+    id: '5',
+    name: 'R.LUX 할인상품 찾기',
+    description: 'R.LUX 전용 목록을 확인하고 할인율 기준으로 상품을 찾는 로컬 웹·SQLite 도구.',
+    tech: ['Next.js', 'Python', 'SQLite'],
+    internalLink: '/projects/temp/rlux-price-finder',
+    emoji: '🛍️',
+    permanent: true,
+  },
 ];
 
 export default function ProjectsPage() {
