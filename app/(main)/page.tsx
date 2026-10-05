@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface AppIcon {
@@ -56,33 +56,40 @@ const DEFAULT_IDS = ['study', 'bookmarks', 'notes'];
 const LS_KEY = 'mc_home_icons';
 const BM_CACHE_KEY = 'mc_cached_bookmarks';
 
+const emptySubscribe = (callback: () => void) => {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+};
+
 type ModalTab = 'app' | 'bookmark';
 
 export default function HomePage() {
-  const [iconIds, setIconIds] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) {
-        try { return JSON.parse(saved); } catch { /* ignore */ }
-      }
-    }
-    return DEFAULT_IDS;
-  });
+  const [localIconIds, setLocalIconIds] = useState<string[] | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalTab, setModalTab] = useState<ModalTab>('app');
 
-  // 북마크 관련
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(BM_CACHE_KEY);
-        if (cached) return JSON.parse(cached);
-      } catch { /* ignore */ }
-    }
-    return DEFAULT_BOOKMARKS;
-  });
+  // useSyncExternalStore로 SSR Hydration Mismatch 완전 방지
+  const iconSnapshot = useSyncExternalStore(
+    emptySubscribe,
+    () => localStorage.getItem(LS_KEY) || JSON.stringify(DEFAULT_IDS),
+    () => JSON.stringify(DEFAULT_IDS)
+  );
+
+  const iconIds = localIconIds ?? (JSON.parse(iconSnapshot) as string[]);
+
+  // 북마크 상태
+  const [localBookmarks, setLocalBookmarks] = useState<Bookmark[] | null>(null);
   const [bmLoading, setBmLoading] = useState(false);
+
+  const bmSnapshot = useSyncExternalStore(
+    emptySubscribe,
+    () => localStorage.getItem(BM_CACHE_KEY) || JSON.stringify(DEFAULT_BOOKMARKS),
+    () => JSON.stringify(DEFAULT_BOOKMARKS)
+  );
+
+  const bookmarks = localBookmarks ?? (JSON.parse(bmSnapshot) as Bookmark[]);
 
   /** 북마크 데이터 로드 */
   const loadBookmarks = useCallback(async () => {
@@ -94,15 +101,16 @@ export default function HomePage() {
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        setBookmarks(data);
+        setLocalBookmarks(data);
         try {
           localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data));
+          window.dispatchEvent(new Event('storage'));
         } catch { /* ignore */ }
       } else if (!data || data.length === 0) {
-        setBookmarks((prev) => (prev.length > 0 ? prev : DEFAULT_BOOKMARKS));
+        setLocalBookmarks(DEFAULT_BOOKMARKS);
       }
     } catch {
-      setBookmarks((prev) => (prev.length > 0 ? prev : DEFAULT_BOOKMARKS));
+      setLocalBookmarks(DEFAULT_BOOKMARKS);
     } finally {
       setBmLoading(false);
     }
@@ -115,9 +123,10 @@ export default function HomePage() {
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!error && data && data.length > 0) {
-          setBookmarks(data);
+          setLocalBookmarks(data);
           try {
             localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data));
+            window.dispatchEvent(new Event('storage'));
           } catch { /* ignore */ }
         }
       });
@@ -140,8 +149,11 @@ export default function HomePage() {
   };
 
   const save = (ids: string[]) => {
-    setIconIds(ids);
-    localStorage.setItem(LS_KEY, JSON.stringify(ids));
+    setLocalIconIds(ids);
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(ids));
+      window.dispatchEvent(new Event('storage'));
+    } catch { /* ignore */ }
   };
 
   const removeIcon = (id: string) => save(iconIds.filter((i) => i !== id));
@@ -185,6 +197,7 @@ export default function HomePage() {
       <div className="home-header">
         <span className="home-header-title">나의 공간</span>
         <button
+          type="button"
           className={`home-edit-btn ${editMode ? 'active' : ''}`}
           onClick={() => { setEditMode((v) => !v); setShowAddModal(false); }}
         >
@@ -197,7 +210,7 @@ export default function HomePage() {
         {icons.map((app) => (
           <div key={app.id} className={`app-icon-wrap ${editMode ? 'wiggle' : ''}`}>
             {editMode && (
-              <button className="app-remove-btn" onClick={() => removeIcon(app.id)}>✕</button>
+              <button type="button" className="app-remove-btn" onClick={() => removeIcon(app.id)}>✕</button>
             )}
             {editMode ? (
               <div className="app-icon">
@@ -234,7 +247,7 @@ export default function HomePage() {
         {/* 추가 버튼 (편집 모드 또는 앱/북마크 추가가 필요할 때) */}
         {editMode && (
           <div className="app-icon-wrap">
-            <button className="app-icon app-add-btn" onClick={openAddModal} title="앱/북마크 바로가기 추가">
+            <button type="button" className="app-icon app-add-btn" onClick={openAddModal} title="앱/북마크 바로가기 추가">
               <span className="app-icon-emoji">＋</span>
             </button>
             <span className="app-icon-label">추가</span>
@@ -248,7 +261,7 @@ export default function HomePage() {
           <div className="modal" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">바로가기 추가</h2>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
+              <button type="button" className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
             </div>
 
             {/* 탭 */}

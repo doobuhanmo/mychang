@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface Bookmark {
@@ -22,6 +22,12 @@ const HOME_LS_KEY = 'mc_home_icons';
 const BM_CACHE_KEY = 'mc_cached_bookmarks';
 const toBmId = (bmId: string) => `bm:${bmId}`;
 
+const emptySubscribe = (callback: () => void) => {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+};
+
 function getDomain(url: string) {
   try { return new URL(url).hostname; } catch { return url; }
 }
@@ -33,15 +39,16 @@ type ModalMode = 'add' | 'edit';
 
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
-  const [homeIconIds, setHomeIconIds] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const savedHome = localStorage.getItem(HOME_LS_KEY);
-      if (savedHome) {
-        try { return JSON.parse(savedHome); } catch { /* ignore */ }
-      }
-    }
-    return [];
-  });
+  const [localHomeIds, setLocalHomeIds] = useState<string[] | null>(null);
+
+  const homeSnapshot = useSyncExternalStore(
+    emptySubscribe,
+    () => localStorage.getItem(HOME_LS_KEY) || '[]',
+    () => '[]'
+  );
+
+  const homeIconIds = localHomeIds ?? (JSON.parse(homeSnapshot) as string[]);
+
   const [activeTag, setActiveTag] = useState('전체');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,9 +93,10 @@ export default function BookmarksPage() {
     } else {
       updated = [...homeIconIds, key];
     }
-    setHomeIconIds(updated);
+    setLocalHomeIds(updated);
     try {
       localStorage.setItem(HOME_LS_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new Event('storage'));
     } catch { /* ignore */ }
   };
 
@@ -143,8 +151,11 @@ export default function BookmarksPage() {
       const key = toBmId(id);
       if (homeIconIds.includes(key)) {
         const updatedHome = homeIconIds.filter((k) => k !== key);
-        setHomeIconIds(updatedHome);
-        try { localStorage.setItem(HOME_LS_KEY, JSON.stringify(updatedHome)); } catch { /* ignore */ }
+        setLocalHomeIds(updatedHome);
+        try {
+          localStorage.setItem(HOME_LS_KEY, JSON.stringify(updatedHome));
+          window.dispatchEvent(new Event('storage'));
+        } catch { /* ignore */ }
       }
     }
   };
