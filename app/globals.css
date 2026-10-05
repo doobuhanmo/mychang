@@ -678,6 +678,152 @@ body {
   flex-shrink: 0;
 }
 
+/* ─────────────────────────────────────────
+   THEOKER TTS & CONTENT
+───────────────────────────────────────── */
+.theoker-content p,
+.theoker-content h3,
+.theoker-content h2,
+.theoker-content li {
+  transition: background 0.2s ease, border-color 0.2s ease, padding 0.2s ease;
+  border-radius: var(--r-xs);
+  padding: 4px 8px;
+  margin: 0 -8px 12px;
+  cursor: pointer;
+}
+.theoker-content p:hover,
+.theoker-content h3:hover,
+.theoker-content h2:hover,
+.theoker-content li:hover {
+  background: var(--bg-overlay);
+}
+.theoker-para-highlight {
+  background: var(--accent-dim) !important;
+  border-left: 3px solid var(--accent) !important;
+  color: var(--text-1) !important;
+}
+
+/* 재생 범위 선택 버튼 */
+.theoker-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-base);
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dur) var(--ease);
+}
+.theoker-mode-btn:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+.theoker-mode-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+/* ─── Theoker 전용 독립 하단 플레이어 바 ─── */
+.theoker-player-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 24px rgba(0,0,0,.08);
+  display: flex;
+  flex-direction: column;
+  padding: 10px 20px 10px;
+  gap: 8px;
+  z-index: 210;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.theoker-player-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.theoker-player-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  max-width: 320px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.theoker-player-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theoker-player-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theoker-scope-pills {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .theoker-player-bar { left: 0; padding: 8px 14px; }
+  .theoker-player-track { min-width: 140px; max-width: 220px; }
+}
+
+@media (max-width: 768px) {
+  .theoker-player-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+  .theoker-player-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+  .theoker-player-track {
+    min-width: 0;
+    max-width: none;
+    flex: 1;
+  }
+  .theoker-player-title {
+    font-size: 12.5px;
+  }
+  .theoker-player-row-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+}
+
 
 /* ─────────────────────────────────────────
    PROJECT CARDS
