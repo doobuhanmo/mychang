@@ -8,6 +8,7 @@ interface AppIcon {
   id: string;
   label: string;
   icon: string;
+  faviconUrl?: string | null;
   href: string;
   /** true면 새 탭으로 열기 */
   external?: boolean;
@@ -20,8 +21,19 @@ interface Bookmark {
   tags: string[];
 }
 
+const DEFAULT_BOOKMARKS: Bookmark[] = [
+  { id: 'default-1', name: '허리운동', url: 'https://www.youtube.com/watch?v=5eNOP-iyAww&t=894s', tags: ['운동'] },
+  { id: 'default-2', name: '허리스트레칭', url: 'https://www.youtube.com/watch?v=i6ZyhuXzoVc&t=15s', tags: ['운동'] },
+  { id: 'default-3', name: 'Vercel', url: 'https://vercel.com', tags: ['배포', '개발'] },
+];
+
 function getFaviconUrl(url: string) {
-  try { const { origin } = new URL(url); return `https://www.google.com/s2/favicons?domain=${origin}&sz=32`; } catch { return null; }
+  try {
+    const { origin } = new URL(url);
+    return `https://www.google.com/s2/favicons?domain=${origin}&sz=32`;
+  } catch {
+    return null;
+  }
 }
 
 /** 북마크 ID를 home icon ID로 변환 */
@@ -42,47 +54,83 @@ const ALL_APPS: AppIcon[] = [
 
 const DEFAULT_IDS = ['study', 'bookmarks', 'notes'];
 const LS_KEY = 'mc_home_icons';
+const BM_CACHE_KEY = 'mc_cached_bookmarks';
 
 type ModalTab = 'app' | 'bookmark';
 
 export default function HomePage() {
-  const [iconIds, setIconIds] = useState<string[]>(DEFAULT_IDS);
+  const [iconIds, setIconIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LS_KEY);
+      if (saved) {
+        try { return JSON.parse(saved); } catch { /* ignore */ }
+      }
+    }
+    return DEFAULT_IDS;
+  });
   const [editMode, setEditMode] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalTab, setModalTab] = useState<ModalTab>('app');
-  const [loaded, setLoaded] = useState(false);
 
   // 북마크 관련
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(BM_CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch { /* ignore */ }
+    }
+    return DEFAULT_BOOKMARKS;
+  });
   const [bmLoading, setBmLoading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(LS_KEY);
-    let ids = DEFAULT_IDS;
-    if (saved) {
-      try { ids = JSON.parse(saved); } catch { /* ignore */ }
-    }
-    setIconIds(ids);
-    setLoaded(true);
+  /** 북마크 데이터 로드 */
+  const loadBookmarks = useCallback(async () => {
+    setBmLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('id, name, url, tags')
+        .order('created_at', { ascending: false });
 
-    // bm: 아이콘이 있으면 북마크 데이터 미리 로드
-    if (ids.some((id: string) => id.startsWith('bm:'))) {
-      supabase.from('bookmarks').select('id, name, url, tags').order('created_at', { ascending: false })
-        .then(({ data }) => { if (data) setBookmarks(data); });
+      if (!error && data && data.length > 0) {
+        setBookmarks(data);
+        try {
+          localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data));
+        } catch { /* ignore */ }
+      } else if (!data || data.length === 0) {
+        setBookmarks((prev) => (prev.length > 0 ? prev : DEFAULT_BOOKMARKS));
+      }
+    } catch {
+      setBookmarks((prev) => (prev.length > 0 ? prev : DEFAULT_BOOKMARKS));
+    } finally {
+      setBmLoading(false);
     }
   }, []);
 
-  /** 북마크 탭 열 때 한 번만 로드 */
-  const loadBookmarks = useCallback(async () => {
-    if (bookmarks.length > 0) return;
-    setBmLoading(true);
-    const { data } = await supabase.from('bookmarks').select('id, name, url, tags').order('created_at', { ascending: false });
-    if (data) setBookmarks(data);
-    setBmLoading(false);
-  }, [bookmarks.length]);
+  useEffect(() => {
+    supabase
+      .from('bookmarks')
+      .select('id, name, url, tags')
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          setBookmarks(data);
+          try {
+            localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data));
+          } catch { /* ignore */ }
+        }
+      });
+  }, []);
 
   const openAddModal = () => {
-    setModalTab('app');
+    loadBookmarks();
+    const remainingApps = ALL_APPS.filter((a) => !iconIds.includes(a.id));
+    if (remainingApps.length === 0) {
+      setModalTab('bookmark');
+    } else {
+      setModalTab('app');
+    }
     setShowAddModal(true);
   };
 
@@ -105,14 +153,24 @@ export default function HomePage() {
 
   /** iconIds(앱 + 북마크 혼합)를 AppIcon 배열로 변환 */
   const resolveIcons = (): AppIcon[] => {
-    return iconIds.map((id) => {
-      if (isBmId(id)) {
-        const bm = bookmarks.find((b) => b.id === rawBmId(id));
-        if (!bm) return null;
-        return { id, label: bm.name, icon: '🌐', href: bm.url, external: true } as AppIcon;
-      }
-      return ALL_APPS.find((a) => a.id === id) ?? null;
-    }).filter(Boolean) as AppIcon[];
+    return iconIds
+      .map((id) => {
+        if (isBmId(id)) {
+          const rawId = rawBmId(id);
+          const bm = bookmarks.find((b) => b.id === rawId) || DEFAULT_BOOKMARKS.find((b) => b.id === rawId);
+          if (!bm) return null;
+          return {
+            id,
+            label: bm.name,
+            icon: '🌐',
+            faviconUrl: getFaviconUrl(bm.url),
+            href: bm.url,
+            external: true,
+          } as AppIcon;
+        }
+        return ALL_APPS.find((a) => a.id === id) ?? null;
+      })
+      .filter(Boolean) as AppIcon[];
   };
 
   const icons = resolveIcons();
@@ -120,8 +178,6 @@ export default function HomePage() {
   // 이미 추가된 북마크 ID 집합
   const addedBmIds = new Set(iconIds.filter(isBmId).map(rawBmId));
   const availableBookmarks = bookmarks.filter((b) => !addedBmIds.has(b.id));
-
-  if (!loaded) return null;
 
   return (
     <div className="home-page">
@@ -145,25 +201,40 @@ export default function HomePage() {
             )}
             {editMode ? (
               <div className="app-icon">
-                <span className="app-icon-emoji">{app.icon}</span>
+                {app.faviconUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={app.faviconUrl} alt="" width={28} height={28} style={{ borderRadius: 6, objectFit: 'contain' }} />
+                ) : (
+                  <span className="app-icon-emoji">{app.icon}</span>
+                )}
               </div>
             ) : app.external ? (
               <a href={app.href} target="_blank" rel="noopener noreferrer" className="app-icon">
-                <span className="app-icon-emoji">{app.icon}</span>
+                {app.faviconUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={app.faviconUrl} alt="" width={28} height={28} style={{ borderRadius: 6, objectFit: 'contain' }} />
+                ) : (
+                  <span className="app-icon-emoji">{app.icon}</span>
+                )}
               </a>
             ) : (
               <Link href={app.href} className="app-icon">
-                <span className="app-icon-emoji">{app.icon}</span>
+                {app.faviconUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={app.faviconUrl} alt="" width={28} height={28} style={{ borderRadius: 6, objectFit: 'contain' }} />
+                ) : (
+                  <span className="app-icon-emoji">{app.icon}</span>
+                )}
               </Link>
             )}
             <span className="app-icon-label">{app.label}</span>
           </div>
         ))}
 
-        {/* 추가 버튼 (편집 모드에서만) */}
+        {/* 추가 버튼 (편집 모드 또는 앱/북마크 추가가 필요할 때) */}
         {editMode && (
           <div className="app-icon-wrap">
-            <button className="app-icon app-add-btn" onClick={openAddModal}>
+            <button className="app-icon app-add-btn" onClick={openAddModal} title="앱/북마크 바로가기 추가">
               <span className="app-icon-emoji">＋</span>
             </button>
             <span className="app-icon-label">추가</span>
@@ -174,54 +245,84 @@ export default function HomePage() {
       {/* 추가 모달 */}
       {showAddModal && (
         <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
-          <div className="modal" style={{ maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">바로가기 추가</h2>
               <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
             </div>
 
             {/* 탭 */}
-            <div style={{ display: 'flex', gap: 4, padding: '4px 0 12px', borderBottom: '1px solid var(--glass-border)', marginBottom: 12 }}>
-              {(['app', 'bookmark'] as ModalTab[]).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => handleTabChange(tab)}
-                  style={{
-                    flex: 1, padding: '7px 0', borderRadius: 8, border: 'none',
-                    cursor: 'pointer', fontWeight: 500, fontSize: 14,
-                    background: modalTab === tab ? 'var(--accent-dim)' : 'transparent',
-                    color: modalTab === tab ? 'var(--accent)' : 'var(--text-2)',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {tab === 'app' ? '📱 앱' : '🔖 북마크'}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: 6, padding: '4px 0 12px', borderBottom: '1px solid var(--glass-border)', marginBottom: 14 }}>
+              <button
+                type="button"
+                onClick={() => handleTabChange('app')}
+                style={{
+                  flex: 1, padding: '8px 0', borderRadius: 8, border: 'none',
+                  cursor: 'pointer', fontWeight: 600, fontSize: 13,
+                  background: modalTab === 'app' ? 'var(--accent-dim)' : 'transparent',
+                  color: modalTab === 'app' ? 'var(--accent)' : 'var(--text-2)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                📱 기본 앱 ({availableApps.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabChange('bookmark')}
+                style={{
+                  flex: 1, padding: '8px 0', borderRadius: 8, border: 'none',
+                  cursor: 'pointer', fontWeight: 600, fontSize: 13,
+                  background: modalTab === 'bookmark' ? 'var(--accent-dim)' : 'transparent',
+                  color: modalTab === 'bookmark' ? 'var(--accent)' : 'var(--text-2)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                🔖 북마크 ({availableBookmarks.length})
+              </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 340, overflowY: 'auto' }}>
               {/* 앱 탭 */}
               {modalTab === 'app' && (
                 availableApps.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: 'var(--text-3)', padding: '24px 0', fontSize: 14 }}>
-                    추가할 앱이 없어요
+                  <div style={{ textAlign: 'center', color: 'var(--text-3)', padding: '24px 10px', fontSize: 13 }}>
+                    <div>모든 기본 앱이 추가되었습니다.</div>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('bookmark')}
+                      style={{
+                        marginTop: 10,
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: '1px solid var(--glass-border)',
+                        background: 'var(--accent-dim)',
+                        color: 'var(--accent)',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    >
+                      🔖 북마크 목록 보기 ({availableBookmarks.length})
+                    </button>
                   </div>
                 ) : (
                   availableApps.map((app) => (
                     <button
                       key={app.id}
+                      type="button"
                       onClick={() => addIcon(app.id)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '10px 16px', borderRadius: 10,
                         border: '1px solid var(--glass-border)',
                         background: 'var(--bg-surface)',
-                        cursor: 'pointer', fontSize: 15,
+                        cursor: 'pointer', fontSize: 14,
                         color: 'var(--text-1)', textAlign: 'left',
+                        transition: 'background 0.15s',
                       }}
                     >
                       <span style={{ fontSize: 24 }}>{app.icon}</span>
-                      {app.label}
+                      <span style={{ fontWeight: 600 }}>{app.label}</span>
                     </button>
                   ))
                 )
@@ -229,13 +330,32 @@ export default function HomePage() {
 
               {/* 북마크 탭 */}
               {modalTab === 'bookmark' && (
-                bmLoading ? (
-                  <div style={{ textAlign: 'center', color: 'var(--text-3)', padding: '24px 0', fontSize: 14 }}>
-                    불러오는 중...
+                bmLoading && bookmarks.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: 'var(--text-3)', padding: '24px 0', fontSize: 13 }}>
+                    북마크 불러오는 중...
                   </div>
                 ) : availableBookmarks.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: 'var(--text-3)', padding: '24px 0', fontSize: 14 }}>
-                    {bookmarks.length === 0 ? '북마크가 없어요' : '모든 북마크가 추가됐어요'}
+                  <div style={{ textAlign: 'center', color: 'var(--text-3)', padding: '24px 10px', fontSize: 13 }}>
+                    {bookmarks.length === 0 ? '등록된 북마크가 없습니다.' : '모든 북마크가 홈에 추가되었습니다.'}
+                    <div style={{ marginTop: 10 }}>
+                      <Link
+                        href="/bookmarks"
+                        style={{
+                          display: 'inline-block',
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          border: '1px solid var(--glass-border)',
+                          background: 'var(--accent-dim)',
+                          color: 'var(--accent)',
+                          textDecoration: 'none',
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                        onClick={() => setShowAddModal(false)}
+                      >
+                        + 북마크 등록하러 가기
+                      </Link>
+                    </div>
                   </div>
                 ) : (
                   availableBookmarks.map((bm) => {
@@ -243,29 +363,32 @@ export default function HomePage() {
                     return (
                       <button
                         key={bm.id}
+                        type="button"
                         onClick={() => addIcon(toBmId(bm.id))}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '10px 16px', borderRadius: 10,
+                          padding: '10px 14px', borderRadius: 10,
                           border: '1px solid var(--glass-border)',
                           background: 'var(--bg-surface)',
-                          cursor: 'pointer', fontSize: 15,
+                          cursor: 'pointer', fontSize: 14,
                           color: 'var(--text-1)', textAlign: 'left',
+                          transition: 'background 0.15s',
                         }}
                       >
                         <span style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           {favicon
                             // eslint-disable-next-line @next/next/no-img-element
-                            ? <img src={favicon} alt="" width={24} height={24} style={{ borderRadius: 4 }} />
+                            ? <img src={favicon} alt="" width={24} height={24} style={{ borderRadius: 4, objectFit: 'contain' }} />
                             : <span style={{ fontSize: 20 }}>🌐</span>
                           }
                         </span>
                         <span style={{ flex: 1, overflow: 'hidden' }}>
-                          <div style={{ fontWeight: 500, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bm.name}</div>
+                          <div style={{ fontWeight: 600, fontSize: 13.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bm.name}</div>
                           {bm.tags.length > 0 && (
                             <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{bm.tags.join(' · ')}</div>
                           )}
                         </span>
+                        <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>+ 추가</span>
                       </button>
                     );
                   })

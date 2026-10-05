@@ -18,6 +18,10 @@ const DEFAULT_BOOKMARKS = [
   { id: 'default-3', name: 'Vercel', url: 'https://vercel.com', tags: ['배포', '개발'] },
 ];
 
+const HOME_LS_KEY = 'mc_home_icons';
+const BM_CACHE_KEY = 'mc_cached_bookmarks';
+const toBmId = (bmId: string) => `bm:${bmId}`;
+
 function getDomain(url: string) {
   try { return new URL(url).hostname; } catch { return url; }
 }
@@ -29,6 +33,15 @@ type ModalMode = 'add' | 'edit';
 
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [homeIconIds, setHomeIconIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const savedHome = localStorage.getItem(HOME_LS_KEY);
+      if (savedHome) {
+        try { return JSON.parse(savedHome); } catch { /* ignore */ }
+      }
+    }
+    return [];
+  });
   const [activeTag, setActiveTag] = useState('전체');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,17 +56,41 @@ export default function BookmarksPage() {
 
       if (!error && data && data.length > 0) {
         setBookmarks(data);
+        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
       } else if (!error) {
         // 비어있으면 기본 북마크 삽입
         const now = new Date().toISOString();
         const defaults = DEFAULT_BOOKMARKS.map((b) => ({ ...b, created_at: now, updated_at: now }));
         await supabase.from('bookmarks').insert(defaults);
         setBookmarks(defaults as Bookmark[]);
+        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(defaults)); } catch { /* ignore */ }
+      } else {
+        // 에러 시 로컬 캐시 또는 기본 북마크
+        const cached = localStorage.getItem(BM_CACHE_KEY);
+        if (cached) {
+          try { setBookmarks(JSON.parse(cached)); } catch { setBookmarks(DEFAULT_BOOKMARKS as Bookmark[]); }
+        } else {
+          setBookmarks(DEFAULT_BOOKMARKS as Bookmark[]);
+        }
       }
       setLoading(false);
     }
     load();
   }, []);
+
+  const toggleHomePin = (bmId: string) => {
+    const key = toBmId(bmId);
+    let updated: string[];
+    if (homeIconIds.includes(key)) {
+      updated = homeIconIds.filter((id) => id !== key);
+    } else {
+      updated = [...homeIconIds, key];
+    }
+    setHomeIconIds(updated);
+    try {
+      localStorage.setItem(HOME_LS_KEY, JSON.stringify(updated));
+    } catch { /* ignore */ }
+  };
 
   const openAddModal = () => {
     setModalMode('add');
@@ -79,18 +116,37 @@ export default function BookmarksPage() {
     if (modalMode === 'add') {
       const newBm: Bookmark = { id: Date.now().toString(), name: form.name.trim() || getDomain(url), url, tags, created_at: now, updated_at: now };
       const { error } = await supabase.from('bookmarks').insert(newBm);
-      if (!error) setBookmarks([newBm, ...bookmarks]);
+      const updatedList = [newBm, ...bookmarks];
+      if (!error) {
+        setBookmarks(updatedList);
+        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(updatedList)); } catch { /* ignore */ }
+      }
     } else if (editingBm) {
       const updated = { name: form.name.trim() || getDomain(url), url, tags, updated_at: now };
       const { error } = await supabase.from('bookmarks').update(updated).eq('id', editingBm.id);
-      if (!error) setBookmarks(bookmarks.map((b) => (b.id === editingBm.id ? { ...b, ...updated } : b)));
+      const updatedList = bookmarks.map((b) => (b.id === editingBm.id ? { ...b, ...updated } : b));
+      if (!error) {
+        setBookmarks(updatedList);
+        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(updatedList)); } catch { /* ignore */ }
+      }
     }
     setIsModalOpen(false);
   };
 
   const deleteBookmark = async (id: string) => {
     const { error } = await supabase.from('bookmarks').delete().eq('id', id);
-    if (!error) setBookmarks(bookmarks.filter((b) => b.id !== id));
+    const updatedList = bookmarks.filter((b) => b.id !== id);
+    if (!error) {
+      setBookmarks(updatedList);
+      try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(updatedList)); } catch { /* ignore */ }
+      // 홈 아이콘에서도 제거
+      const key = toBmId(id);
+      if (homeIconIds.includes(key)) {
+        const updatedHome = homeIconIds.filter((k) => k !== key);
+        setHomeIconIds(updatedHome);
+        try { localStorage.setItem(HOME_LS_KEY, JSON.stringify(updatedHome)); } catch { /* ignore */ }
+      }
+    }
   };
 
   const allTags = ['전체', ...Array.from(new Set(bookmarks.flatMap((b) => b.tags)))];
@@ -125,9 +181,17 @@ export default function BookmarksPage() {
         <div className="card-grid">
           {filtered.map((bm) => {
             const faviconUrl = getFaviconUrl(bm.url);
+            const isPinned = homeIconIds.includes(toBmId(bm.id));
             return (
               <div key={bm.id} className="card">
                 <div className="card-actions">
+                  <button
+                    className={`card-pin-btn ${isPinned ? 'active' : ''}`}
+                    onClick={() => toggleHomePin(bm.id)}
+                    title={isPinned ? '홈 화면(나의 공간)에서 제거' : '홈 화면(나의 공간)에 추가'}
+                  >
+                    {isPinned ? '⭐' : '☆'}
+                  </button>
                   <button className="card-edit-btn" onClick={() => openEditModal(bm)} title="수정">✏️</button>
                   <button className="card-delete-btn" onClick={() => deleteBookmark(bm.id)} title="삭제">✕</button>
                 </div>
