@@ -20,11 +20,63 @@ interface Todo {
 
 type ModalMode = 'add' | 'edit';
 
+const NOTES_CACHE_KEY = 'mc_cached_notes';
+const TODOS_CACHE_KEY = 'mc_cached_todos';
+const NOTES_DELETED_KEY = 'mc_deleted_notes';
+const TODOS_DELETED_KEY = 'mc_deleted_todos';
+
+function getDeletedSet(key: string): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function addDeletedItem(key: string, id: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getDeletedSet(key);
+    set.add(id);
+    localStorage.setItem(key, JSON.stringify(Array.from(set)));
+  } catch { /* ignore */ }
+}
+
+function removeDeletedItems(key: string, ids: string[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getDeletedSet(key);
+    ids.forEach((id) => set.delete(id));
+    localStorage.setItem(key, JSON.stringify(Array.from(set)));
+  } catch { /* ignore */ }
+}
+
+function getCachedList<T extends { id: string }>(cacheKey: string, deletedKey: string): T[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (!raw) return null;
+    const deleted = getDeletedSet(deletedKey);
+    return (JSON.parse(raw) as T[]).filter((item) => !deleted.has(item.id));
+  } catch {
+    return null;
+  }
+}
+
+function setCachedList<T>(cacheKey: string, list: T[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(list));
+  } catch { /* ignore */ }
+}
+
 export default function NotesPage() {
   const [tab, setTab] = useState<'notes' | 'todos'>('notes');
   const [notes, setNotes] = useState<Note[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -32,17 +84,50 @@ export default function NotesPage() {
   const [todoInput, setTodoInput] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
-      setLoading(true);
-      const [{ data: n }, { data: t }] = await Promise.all([
+      const initialNotes = getCachedList<Note>(NOTES_CACHE_KEY, NOTES_DELETED_KEY);
+      const initialTodos = getCachedList<Todo>(TODOS_CACHE_KEY, TODOS_DELETED_KEY);
+      if (initialNotes !== null) setNotes(initialNotes);
+      if (initialTodos !== null) setTodos(initialTodos);
+      setLoading(false);
+
+      const [{ data: n, error: nErr }, { data: t, error: tErr }] = await Promise.all([
         supabase.from('notes').select('*').order('created_at', { ascending: false }),
         supabase.from('todos').select('*').order('created_at', { ascending: false }),
       ]);
-      setNotes(n ?? []);
-      setTodos(t ?? []);
-      setLoading(false);
+      if (cancelled) return;
+
+      if (!nErr && n) {
+        const deletedNotes = getDeletedSet(NOTES_DELETED_KEY);
+        const lingeringIds = (n as Note[]).filter((item) => deletedNotes.has(item.id)).map((item) => item.id);
+        if (lingeringIds.length > 0) {
+          supabase.from('notes').delete().in('id', lingeringIds).then(({ error }) => {
+            if (!error) removeDeletedItems(NOTES_DELETED_KEY, lingeringIds);
+          });
+        }
+        const remoteValid = (n as Note[]).filter((item) => !deletedNotes.has(item.id));
+        setNotes(remoteValid);
+        setCachedList(NOTES_CACHE_KEY, remoteValid);
+      }
+
+      if (!tErr && t) {
+        const deletedTodos = getDeletedSet(TODOS_DELETED_KEY);
+        const lingeringIds = (t as Todo[]).filter((item) => deletedTodos.has(item.id)).map((item) => item.id);
+        if (lingeringIds.length > 0) {
+          supabase.from('todos').delete().in('id', lingeringIds).then(({ error }) => {
+            if (!error) removeDeletedItems(TODOS_DELETED_KEY, lingeringIds);
+          });
+        }
+        const remoteValid = (t as Todo[]).filter((item) => !deletedTodos.has(item.id));
+        setTodos(remoteValid);
+        setCachedList(TODOS_CACHE_KEY, remoteValid);
+      }
     }
+
     load();
+    return () => { cancelled = true; };
   }, []);
 
   const openAddModal = () => {
@@ -61,55 +146,88 @@ export default function NotesPage() {
 
   const saveNote = async () => {
     if (!noteForm.title.trim() && !noteForm.content.trim()) return;
+    const now = new Date().toISOString();
+    setIsModalOpen(false);
+
     if (modalMode === 'add') {
-      const newNote = {
+      const newNote: Note = {
         id: Date.now().toString(),
         title: noteForm.title.trim() || '제목 없음',
         content: noteForm.content.trim(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
       };
-      const { error } = await supabase.from('notes').insert(newNote);
-      if (!error) setNotes([newNote, ...notes]);
+      setNotes((prev) => {
+        const next = [newNote, ...prev];
+        setCachedList(NOTES_CACHE_KEY, next);
+        return next;
+      });
+      await supabase.from('notes').insert(newNote);
     } else if (editingNote) {
+      const targetId = editingNote.id;
       const updated = {
         title: noteForm.title.trim() || '제목 없음',
         content: noteForm.content.trim(),
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       };
-      const { error } = await supabase.from('notes').update(updated).eq('id', editingNote.id);
-      if (!error) setNotes(notes.map((n) => (n.id === editingNote.id ? { ...n, ...updated } : n)));
+      setNotes((prev) => {
+        const next = prev.map((n) => (n.id === targetId ? { ...n, ...updated } : n));
+        setCachedList(NOTES_CACHE_KEY, next);
+        return next;
+      });
+      await supabase.from('notes').update(updated).eq('id', targetId);
     }
-    setIsModalOpen(false);
   };
 
   const deleteNote = async (id: string) => {
+    addDeletedItem(NOTES_DELETED_KEY, id);
+    setNotes((prev) => {
+      const next = prev.filter((n) => n.id !== id);
+      setCachedList(NOTES_CACHE_KEY, next);
+      return next;
+    });
     const { error } = await supabase.from('notes').delete().eq('id', id);
-    if (!error) setNotes(notes.filter((n) => n.id !== id));
+    if (!error) removeDeletedItems(NOTES_DELETED_KEY, [id]);
   };
 
   const addTodo = async () => {
     if (!todoInput.trim()) return;
-    const newTodo = {
+    const newTodo: Todo = {
       id: Date.now().toString(),
       text: todoInput.trim(),
       done: false,
       created_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from('todos').insert(newTodo);
-    if (!error) { setTodos([newTodo, ...todos]); setTodoInput(''); }
+    setTodoInput('');
+    setTodos((prev) => {
+      const next = [newTodo, ...prev];
+      setCachedList(TODOS_CACHE_KEY, next);
+      return next;
+    });
+    await supabase.from('todos').insert(newTodo);
   };
 
   const toggleTodo = async (id: string) => {
     const todo = todos.find((t) => t.id === id);
     if (!todo) return;
-    const { error } = await supabase.from('todos').update({ done: !todo.done }).eq('id', id);
-    if (!error) setTodos(todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+    const nextDone = !todo.done;
+    setTodos((prev) => {
+      const next = prev.map((t) => (t.id === id ? { ...t, done: nextDone } : t));
+      setCachedList(TODOS_CACHE_KEY, next);
+      return next;
+    });
+    await supabase.from('todos').update({ done: nextDone }).eq('id', id);
   };
 
   const deleteTodo = async (id: string) => {
+    addDeletedItem(TODOS_DELETED_KEY, id);
+    setTodos((prev) => {
+      const next = prev.filter((t) => t.id !== id);
+      setCachedList(TODOS_CACHE_KEY, next);
+      return next;
+    });
     const { error } = await supabase.from('todos').delete().eq('id', id);
-    if (!error) setTodos(todos.filter((t) => t.id !== id));
+    if (!error) removeDeletedItems(TODOS_DELETED_KEY, [id]);
   };
 
   const fmt = (iso: string) =>

@@ -20,7 +20,58 @@ const DEFAULT_BOOKMARKS = [
 
 const HOME_LS_KEY = 'mc_home_icons';
 const BM_CACHE_KEY = 'mc_cached_bookmarks';
+const BM_DELETED_KEY = 'mc_deleted_bookmarks';
+const BM_SEEDED_KEY = 'mc_bookmarks_seeded';
 const toBmId = (bmId: string) => `bm:${bmId}`;
+
+function getDeletedIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(BM_DELETED_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function addDeletedId(id: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getDeletedIds();
+    set.add(id);
+    localStorage.setItem(BM_DELETED_KEY, JSON.stringify(Array.from(set)));
+  } catch { /* ignore */ }
+}
+
+function removeDeletedIds(ids: string[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getDeletedIds();
+    ids.forEach((id) => set.delete(id));
+    localStorage.setItem(BM_DELETED_KEY, JSON.stringify(Array.from(set)));
+  } catch { /* ignore */ }
+}
+
+function getCachedBookmarks(): Bookmark[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(BM_CACHE_KEY);
+    if (!raw) return null;
+    const deleted = getDeletedIds();
+    return (JSON.parse(raw) as Bookmark[]).filter((b) => !deleted.has(b.id));
+  } catch {
+    return null;
+  }
+}
+
+function setCachedBookmarks(list: Bookmark[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(BM_CACHE_KEY, JSON.stringify(list));
+    localStorage.setItem(BM_SEEDED_KEY, '1');
+    window.dispatchEvent(new Event('storage'));
+  } catch { /* ignore */ }
+}
 
 const emptySubscribe = (callback: () => void) => {
   if (typeof window === 'undefined') return () => {};
@@ -57,32 +108,70 @@ export default function BookmarksPage() {
   const [form, setForm] = useState({ name: '', url: '', tagsInput: '' });
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      const { data, error } = await supabase.from('bookmarks').select('*').order('created_at', { ascending: false });
+    let cancelled = false;
 
-      if (!error && data && data.length > 0) {
-        setBookmarks(data);
-        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
-      } else if (!error) {
-        // 비어있으면 기본 북마크 삽입
-        const now = new Date().toISOString();
-        const defaults = DEFAULT_BOOKMARKS.map((b) => ({ ...b, created_at: now, updated_at: now }));
-        await supabase.from('bookmarks').insert(defaults);
-        setBookmarks(defaults as Bookmark[]);
-        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(defaults)); } catch { /* ignore */ }
+    async function load() {
+      const initialDeleted = getDeletedIds();
+      const initialCache = getCachedBookmarks();
+      if (initialCache !== null) {
+        setBookmarks(initialCache);
       } else {
-        // 에러 시 로컬 캐시 또는 기본 북마크
-        const cached = localStorage.getItem(BM_CACHE_KEY);
-        if (cached) {
-          try { setBookmarks(JSON.parse(cached)); } catch { setBookmarks(DEFAULT_BOOKMARKS as Bookmark[]); }
-        } else {
-          setBookmarks(DEFAULT_BOOKMARKS as Bookmark[]);
-        }
+        const now = new Date().toISOString();
+        const defaults = DEFAULT_BOOKMARKS
+          .filter((b) => !initialDeleted.has(b.id))
+          .map((b) => ({ ...b, created_at: now, updated_at: now })) as Bookmark[];
+        setBookmarks(defaults);
       }
       setLoading(false);
+
+      const { data, error } = await supabase.from('bookmarks').select('*').order('created_at', { ascending: false });
+      if (cancelled) return;
+
+      const deleted = getDeletedIds();
+      const latestCache = getCachedBookmarks();
+      const isSeeded = typeof window !== 'undefined' && localStorage.getItem(BM_SEEDED_KEY) === '1';
+
+      if (!error && data && data.length > 0) {
+        // 오프라인 중 삭제 대기했던 항목이 DB에 남아있으면 DB에서도 삭제
+        const lingeringIds = data.filter((b) => deleted.has(b.id)).map((b) => b.id);
+        if (lingeringIds.length > 0) {
+          supabase.from('bookmarks').delete().in('id', lingeringIds).then(({ error: delErr }) => {
+            if (!delErr) removeDeletedIds(lingeringIds);
+          });
+        }
+
+        // DB에서 불러온 데이터를 기준으로 상태 및 캐시 동기화
+        const remoteValid = (data as Bookmark[]).filter((b) => !deleted.has(b.id));
+        setBookmarks(remoteValid);
+        setCachedBookmarks(remoteValid);
+      } else if (!error) {
+        if (!isSeeded && latestCache === null) {
+          // DB가 완전히 비어있는 최초 1회만 기본 북마크 DB 삽입
+          const now = new Date().toISOString();
+          const defaults = DEFAULT_BOOKMARKS
+            .filter((b) => !deleted.has(b.id))
+            .map((b) => ({ ...b, created_at: now, updated_at: now }));
+          setBookmarks(defaults as Bookmark[]);
+          setCachedBookmarks(defaults as Bookmark[]);
+          if (defaults.length > 0) {
+            supabase.from('bookmarks').insert(defaults).then(() => {});
+          }
+        } else {
+          setBookmarks([]);
+          setCachedBookmarks([]);
+        }
+      } else if (latestCache === null) {
+        // DB 연결 실패 시에만 로컬 캐시/기본값 폴백
+        const now = new Date().toISOString();
+        const defaults = DEFAULT_BOOKMARKS
+          .filter((b) => !deleted.has(b.id))
+          .map((b) => ({ ...b, created_at: now, updated_at: now })) as Bookmark[];
+        setCachedBookmarks(defaults);
+      }
     }
+
     load();
+    return () => { cancelled = true; };
   }, []);
 
   const toggleHomePin = (bmId: string) => {
@@ -117,51 +206,68 @@ export default function BookmarksPage() {
   const saveBookmark = async () => {
     if (!form.url.trim()) return;
     let url = form.url.trim();
-    if (!url.startsWith('http')) url = 'https://' + url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
     const tags = form.tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
     const now = new Date().toISOString();
 
-    if (modalMode === 'add') {
-      const newBm: Bookmark = { id: Date.now().toString(), name: form.name.trim() || getDomain(url), url, tags, created_at: now, updated_at: now };
-      const { error } = await supabase.from('bookmarks').insert(newBm);
-      const updatedList = [newBm, ...bookmarks];
-      if (!error) {
-        setBookmarks(updatedList);
-        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(updatedList)); } catch { /* ignore */ }
-      }
-    } else if (editingBm) {
-      const updated = { name: form.name.trim() || getDomain(url), url, tags, updated_at: now };
-      const { error } = await supabase.from('bookmarks').update(updated).eq('id', editingBm.id);
-      const updatedList = bookmarks.map((b) => (b.id === editingBm.id ? { ...b, ...updated } : b));
-      if (!error) {
-        setBookmarks(updatedList);
-        try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(updatedList)); } catch { /* ignore */ }
-      }
-    }
     setIsModalOpen(false);
+
+    if (modalMode === 'add') {
+      const newBm: Bookmark = {
+        id: Date.now().toString(),
+        name: form.name.trim() || getDomain(url),
+        url,
+        tags,
+        created_at: now,
+        updated_at: now,
+      };
+      setBookmarks((prev) => {
+        const updatedList = [newBm, ...prev];
+        setCachedBookmarks(updatedList);
+        return updatedList;
+      });
+      await supabase.from('bookmarks').insert(newBm);
+    } else if (editingBm) {
+      const targetId = editingBm.id;
+      const updated = { name: form.name.trim() || getDomain(url), url, tags, updated_at: now };
+      setBookmarks((prev) => {
+        const updatedList = prev.map((b) => (b.id === targetId ? { ...b, ...updated } : b));
+        setCachedBookmarks(updatedList);
+        return updatedList;
+      });
+      await supabase.from('bookmarks').update(updated).eq('id', targetId);
+    }
   };
 
   const deleteBookmark = async (id: string) => {
+    addDeletedId(id);
+
+    setBookmarks((prev) => {
+      const updatedList = prev.filter((b) => b.id !== id);
+      setCachedBookmarks(updatedList);
+      return updatedList;
+    });
+
+    // 홈 아이콘에서도 즉시 제거
+    const key = toBmId(id);
+    if (homeIconIds.includes(key)) {
+      const updatedHome = homeIconIds.filter((k) => k !== key);
+      setLocalHomeIds(updatedHome);
+      try {
+        localStorage.setItem(HOME_LS_KEY, JSON.stringify(updatedHome));
+        window.dispatchEvent(new Event('storage'));
+      } catch { /* ignore */ }
+    }
+
     const { error } = await supabase.from('bookmarks').delete().eq('id', id);
-    const updatedList = bookmarks.filter((b) => b.id !== id);
     if (!error) {
-      setBookmarks(updatedList);
-      try { localStorage.setItem(BM_CACHE_KEY, JSON.stringify(updatedList)); } catch { /* ignore */ }
-      // 홈 아이콘에서도 제거
-      const key = toBmId(id);
-      if (homeIconIds.includes(key)) {
-        const updatedHome = homeIconIds.filter((k) => k !== key);
-        setLocalHomeIds(updatedHome);
-        try {
-          localStorage.setItem(HOME_LS_KEY, JSON.stringify(updatedHome));
-          window.dispatchEvent(new Event('storage'));
-        } catch { /* ignore */ }
-      }
+      removeDeletedIds([id]);
     }
   };
 
   const allTags = ['전체', ...Array.from(new Set(bookmarks.flatMap((b) => b.tags)))];
-  const filtered = activeTag === '전체' ? bookmarks : bookmarks.filter((b) => b.tags.includes(activeTag));
+  const currentTag = allTags.includes(activeTag) ? activeTag : '전체';
+  const filtered = currentTag === '전체' ? bookmarks : bookmarks.filter((b) => b.tags.includes(currentTag));
 
   return (
     <>
@@ -171,12 +277,12 @@ export default function BookmarksPage() {
       </div>
       <div className="section-header">
         <span className="section-title">{filtered.length}개의 링크</span>
-        <button className="btn btn-primary" onClick={openAddModal}>+ 추가</button>
+        <button type="button" className="btn btn-primary" onClick={openAddModal}>+ 추가</button>
       </div>
       {allTags.length > 1 && (
         <div className="bookmark-filters">
           {allTags.map((tag) => (
-            <button key={tag} className={`filter-tag ${activeTag === tag ? 'active' : ''}`} onClick={() => setActiveTag(tag)}>{tag}</button>
+            <button type="button" key={tag} className={`filter-tag ${currentTag === tag ? 'active' : ''}`} onClick={() => setActiveTag(tag)}>{tag}</button>
           ))}
         </div>
       )}
@@ -197,14 +303,29 @@ export default function BookmarksPage() {
               <div key={bm.id} className="card">
                 <div className="card-actions">
                   <button
+                    type="button"
                     className={`card-pin-btn ${isPinned ? 'active' : ''}`}
-                    onClick={() => toggleHomePin(bm.id)}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleHomePin(bm.id); }}
                     title={isPinned ? '홈 화면(나의 공간)에서 제거' : '홈 화면(나의 공간)에 추가'}
                   >
                     {isPinned ? '⭐' : '☆'}
                   </button>
-                  <button className="card-edit-btn" onClick={() => openEditModal(bm)} title="수정">✏️</button>
-                  <button className="card-delete-btn" onClick={() => deleteBookmark(bm.id)} title="삭제">✕</button>
+                  <button
+                    type="button"
+                    className="card-edit-btn"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEditModal(bm); }}
+                    title="수정"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    className="card-delete-btn"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteBookmark(bm.id); }}
+                    title="삭제"
+                  >
+                    ✕
+                  </button>
                 </div>
                 <a href={bm.url} target="_blank" rel="noopener noreferrer" className="bookmark-card-link">
                   <div className="bookmark-card">
@@ -235,23 +356,42 @@ export default function BookmarksPage() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">{modalMode === 'add' ? '북마크 추가' : '북마크 수정'}</h2>
-              <button className="modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
+              <button type="button" className="modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
             <div className="form-group">
               <label className="form-label">URL *</label>
-              <input className="input" placeholder="https://example.com" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} autoFocus />
+              <input
+                className="input"
+                placeholder="https://example.com"
+                value={form.url}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && saveBookmark()}
+                autoFocus
+              />
             </div>
             <div className="form-group" style={{ marginTop: 12 }}>
               <label className="form-label">이름 (선택)</label>
-              <input className="input" placeholder="비워두면 도메인으로 자동 설정" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input
+                className="input"
+                placeholder="비워두면 도메인으로 자동 설정"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && saveBookmark()}
+              />
             </div>
             <div className="form-group" style={{ marginTop: 12 }}>
               <label className="form-label">태그 (쉼표로 구분)</label>
-              <input className="input" placeholder="개발, 디자인, 도구" value={form.tagsInput} onChange={(e) => setForm({ ...form, tagsInput: e.target.value })} />
+              <input
+                className="input"
+                placeholder="개발, 디자인, 도구"
+                value={form.tagsInput}
+                onChange={(e) => setForm({ ...form, tagsInput: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && saveBookmark()}
+              />
             </div>
             <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>취소</button>
-              <button className="btn btn-primary" onClick={saveBookmark}>{modalMode === 'add' ? '추가하기' : '저장'}</button>
+              <button type="button" className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>취소</button>
+              <button type="button" className="btn btn-primary" onClick={saveBookmark}>{modalMode === 'add' ? '추가하기' : '저장'}</button>
             </div>
           </div>
         </div>

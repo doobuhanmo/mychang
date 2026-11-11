@@ -63,6 +63,17 @@ const ALL_APPS: AppIcon[] = [
 const DEFAULT_IDS = ['study', 'bookmarks', 'notes'];
 const LS_KEY = 'mc_home_icons';
 const BM_CACHE_KEY = 'mc_cached_bookmarks';
+const BM_DELETED_KEY = 'mc_deleted_bookmarks';
+
+function getDeletedBmIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(BM_DELETED_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
 
 const emptySubscribe = (callback: () => void) => {
   if (typeof window === 'undefined') return () => {};
@@ -101,40 +112,51 @@ export default function HomePage() {
     () => JSON.stringify(DEFAULT_BOOKMARKS)
   );
 
-  const bookmarks = localBookmarks ?? (JSON.parse(bmSnapshot) as Bookmark[]);
+  const deletedBmIds = getDeletedBmIds();
+  const bookmarks = (localBookmarks ?? (JSON.parse(bmSnapshot) as Bookmark[])).filter(
+    (b) => !deletedBmIds.has(b.id)
+  );
 
   /** 북마크 데이터 로드 */
   const loadBookmarks = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('bookmarks')
-        .select('id, name, url, tags')
+        .select('*')
         .order('created_at', { ascending: false });
 
+      const deleted = getDeletedBmIds();
       if (!error && data && data.length > 0) {
-        setLocalBookmarks(data);
+        const valid = data.filter((b) => !deleted.has(b.id));
+        setLocalBookmarks(valid);
         try {
-          localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data));
+          localStorage.setItem(BM_CACHE_KEY, JSON.stringify(valid));
           window.dispatchEvent(new Event('storage'));
         } catch { /* ignore */ }
       } else if (!data || data.length === 0) {
-        setLocalBookmarks(DEFAULT_BOOKMARKS);
+        const cached = localStorage.getItem(BM_CACHE_KEY);
+        if (!cached) {
+          setLocalBookmarks(DEFAULT_BOOKMARKS.filter((b) => !deleted.has(b.id)));
+        }
       }
     } catch {
-      setLocalBookmarks(DEFAULT_BOOKMARKS);
+      const deleted = getDeletedBmIds();
+      setLocalBookmarks(DEFAULT_BOOKMARKS.filter((b) => !deleted.has(b.id)));
     }
   }, []);
 
   useEffect(() => {
     supabase
       .from('bookmarks')
-      .select('id, name, url, tags')
+      .select('*')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!error && data && data.length > 0) {
-          setLocalBookmarks(data);
+          const deleted = getDeletedBmIds();
+          const valid = data.filter((b) => !deleted.has(b.id));
+          setLocalBookmarks(valid);
           try {
-            localStorage.setItem(BM_CACHE_KEY, JSON.stringify(data));
+            localStorage.setItem(BM_CACHE_KEY, JSON.stringify(valid));
             window.dispatchEvent(new Event('storage'));
           } catch { /* ignore */ }
         }
@@ -208,6 +230,7 @@ export default function HomePage() {
       .map((id) => {
         if (isBmId(id)) {
           const rawId = rawBmId(id);
+          if (deletedBmIds.has(rawId)) return null;
           const bm = bookmarks.find((b) => b.id === rawId) || DEFAULT_BOOKMARKS.find((b) => b.id === rawId);
           if (!bm) return null;
           return {
