@@ -19,6 +19,9 @@ export function getGroup(post: Post): { key: string; title: string } {
   if (titleWithoutPostNumber.startsWith('THEKERR NOTE')) {
     return { key: 'thekerr-note', title: 'THEKERR NOTE' };
   }
+  if (titleWithoutPostNumber.startsWith('Market Thoughts')) {
+    return { key: 'market-thoughts', title: 'Market Thoughts' };
+  }
 
   const chapterMatch = title.match(/\s+(\d{1,2})-\d+\s*$/);
   const normalizedTitle = titleWithoutPostNumber
